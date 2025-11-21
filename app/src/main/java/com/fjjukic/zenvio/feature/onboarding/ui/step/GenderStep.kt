@@ -3,6 +3,7 @@ package com.fjjukic.zenvio.feature.onboarding.ui.step
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -112,7 +114,10 @@ private fun GenderButton(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onSelect() }
+        modifier = Modifier.clickable(
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+        ) { onSelect() }
     ) {
         Box(
             modifier = Modifier
@@ -127,7 +132,7 @@ private fun GenderButton(
                     imageVector = ImageVector.vectorResource(it),
                     contentDescription = stringResource(item.textRes),
                     tint = imageTint,
-                    modifier = Modifier.size(60.dp) // .align() is redundant here
+                    modifier = Modifier.size(60.dp)
                 )
             }
         }

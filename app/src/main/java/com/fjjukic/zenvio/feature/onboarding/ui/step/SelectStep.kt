@@ -1,5 +1,7 @@
 package com.fjjukic.zenvio.feature.onboarding.ui.step
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,15 +22,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fjjukic.zenvio.R
@@ -124,26 +129,33 @@ fun ChoiceCard(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) { onClick(choice.id) }
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = stringResource(choice.textRes),
+            modifier = Modifier.weight(1f),
             color = AppInputDefaults.textFieldTextColor,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.SemiBold
             ),
-            modifier = Modifier.weight(1f)
+            textAlign = TextAlign.Center,
         )
 
-        if (choice.isSelected) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_check),
-                contentDescription = stringResource(choice.cdTextRes),
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(28.dp)
-            )
-        }
+        val iconAlpha by animateFloatAsState(
+            targetValue = if (choice.isSelected) 1f else 0f,
+            animationSpec = tween(durationMillis = 200),
+            label = "CheckIconAlpha"
+        )
+
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.ic_check),
+            contentDescription = stringResource(choice.cdTextRes),
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .size(28.dp)
+                .padding(start = 8.dp)
+                .graphicsLayer { alpha = iconAlpha }
+        )
     }
 }

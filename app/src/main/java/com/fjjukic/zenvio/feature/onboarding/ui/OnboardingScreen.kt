@@ -2,6 +2,7 @@ package com.fjjukic.zenvio.feature.onboarding.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -122,7 +124,11 @@ fun OnboardingScreenStateless(
                         onIntent(OnboardingIntent.SelectGender(it))
                     }
 
-                    is OnboardingStep.Age -> AgeStep(step.age) {
+                    is OnboardingStep.Age -> AgeStep(
+                        step.age,
+                        step.visibleItemCount,
+                        step.itemHeight
+                    ) {
                         onIntent(OnboardingIntent.SelectAge(it))
                     }
 
@@ -172,7 +178,10 @@ fun OnboardingTopBar(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = stringResource(R.string.cd_navigate_back),
             tint = Color.Black,
-            modifier = Modifier.clickable {
+            modifier = Modifier.clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
                 onBackClick()
             }
         )

@@ -170,4 +170,5 @@
     <string name="cd_choice_neutral">Choice: Neutral</string>
     <string name="cd_choice_happy">Choice: Happy</string>
     <string name="cd_choice_very_happy">Choice: Very Happy</string>
+    <string name="cd_btn_explore">Button Explore</string>
 </resources>

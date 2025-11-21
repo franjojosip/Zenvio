@@ -1,6 +1,8 @@
 package com.fjjukic.zenvio.feature.onboarding.model
 
 import androidx.annotation.StringRes
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.fjjukic.zenvio.R
 
 sealed class OnboardingStep {
@@ -29,7 +31,9 @@ sealed class OnboardingStep {
     }
 
     data class Age(
-        val age: Int = 25
+        val age: Int = 25,
+        val visibleItemCount: Int = 7,
+        val itemHeight: Dp = 60.dp,
     ) : OnboardingStep() {
         override val titleRes: Int = R.string.title_onboarding_age_step
         override val subtitleRes: Int = R.string.subtitle_onboarding_age_step

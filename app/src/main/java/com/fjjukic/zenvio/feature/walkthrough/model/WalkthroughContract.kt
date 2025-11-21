@@ -16,9 +16,11 @@ data class WalkthroughUiState(
     val pages: List<WalkthroughPage> = emptyList(),
     val currentPage: Int = 0
 ) {
-    val isFirstPage get() = currentPage == 0
+    private val isFirstPage
+        get() = currentPage == 0
 
-    val isLastPage get() = currentPage == pages.lastIndex
+    val isLastPage
+        get() = currentPage == pages.lastIndex
 
     val startBtnText: Int?
         get() = if (!isFirstPage && !isLastPage) R.string.btn_back else null

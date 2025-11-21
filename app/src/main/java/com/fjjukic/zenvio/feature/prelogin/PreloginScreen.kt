@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,21 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.core.util.CustomSystemBars
-import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 
-@Preview(showSystemUi = true)
-@Composable
-fun PreloginScreenPreview() {
-    ZenvioTheme {
-        PreloginScreen()
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreloginScreen(onContinueClick: (() -> Unit) = {}) {
     CustomSystemBars(lightStatusBarIcons = false, lightNavigationBarIcons = false)
@@ -70,7 +58,7 @@ fun PreloginScreen(onContinueClick: (() -> Unit) = {}) {
             Text(stringResource(R.string.btn_explore))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.cd_btn_explore),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 8.dp)
             )
