@@ -1,0 +1,117 @@
+<resources>
+    <string name="app_name">Zenvio</string>
+    <string name="btn_back">Back</string>
+    <string name="btn_continue">Continue</string>
+    <string name="btn_explore">Explore</string>
+    <string name="btn_lets_get_started">Let\'s Get Started</string>
+
+    <string name="title_walkthrough_step_one">Your Personalized Mental Wellness Companion</string>
+    <string name="title_walkthrough_step_two">Dive and Explore Your Path to Wellness</string>
+    <string name="title_walkthrough_step_three">Gain Insights and Track Progress Overtime</string>
+    <string name="description_walkthrough_step_one">Discover personalized mental health plans tailored just for you by our AI. Track your mood and explore a world of wellness resources.</string>
+    <string name="description_walkthrough_step_two">Explore meditation exercises, breathing techniques, articles, courses, journals, and mindfulness resources to find your center.</string>
+    <string name="description_walkthrough_step_three">Gain valuable insights into your well-being with mood tracking, growth area reports, and life balance graphs overtime.</string>
+
+    <string name="title_onboarding_name_step">What should we call you?</string>
+    <string name="subtitle_onboarding_name_step">First things first, what should we call you?</string>
+    <string name="placeholder_onboarding_name">Your name here</string>
+    <string name="title_onboarding_gender_step">What is your gender?</string>
+    <string name="subtitle_onboarding_gender_step">Help us understand you better by selecting your gender.</string>
+    <string name="title_onboarding_age_step">How old are you?</string>
+    <string name="subtitle_onboarding_age_step">Your age helps us tailor our recommendations to you.</string>
+    <string name="title_onboarding_main_goals_step">What are your main goals?</string>
+    <string name="subtitle_onboarding_main_goals_step">Select the option that best represents what you\'re hoping to achieve (select all that apply).</string>
+    <string name="title_onboarding_mental_health_step">What causes your mental health issues?</string>
+    <string name="subtitle_onboarding_mental_health_step">What factors contribute to your mental health issues? (select all that apply).</string>
+    <string name="title_onboarding_stress_feel_step">How often did you feel stressed or anxious in the last 12 months?</string>
+    <string name="subtitle_onboarding_stress_feel_step">In the past year, how often have you experienced feelings of stress or anxiety?</string>
+    <string name="title_onboarding_eat_healthy_step">Do you eat healthily?</string>
+    <string name="subtitle_onboarding_eat_healthy_step">How would you describe your eating habits? Your diet can impact your mental well-being.</string>
+    <string name="title_onboarding_try_meditation_step">Have you ever tried meditation before?</string>
+    <string name="subtitle_onboarding_try_meditation_step">Have you ever practiced meditation or mindfulness techniques before?</string>
+    <string name="title_onboarding_sleep_quality_step">How would you rate your level of sleep quality overall?</string>
+    <string name="subtitle_onboarding_sleep_quality_step">Understanding your sleep quality helps us provide personalized support.</string>
+    <string name="title_onboarding_rate_happiness_step">How would you rate your level of happiness overall?</string>
+    <string name="subtitle_onboarding_rate_happiness_step">Understanding your happiness helps us provide personalized support.</string>
+
+    <string name="label_gender_male">Male</string>
+    <string name="label_gender_female">Female</string>
+    <string name="label_gender_other">Prefer not to say</string>
+
+    <string name="choice_manage_anxiety">Manage Anxiety</string>
+    <string name="choice_reduce_stress">Reduce Stress</string>
+    <string name="choice_improve_mood">Improve Mood</string>
+    <string name="choice_improve_sleep">Improve Sleep</string>
+    <string name="choice_enhance_relationships">Enhance Relationships</string>
+    <string name="choice_boost_confidence">Boost Confidence</string>
+
+    <string name="choice_work_school">Work/school</string>
+    <string name="choice_relationships">Relationships</string>
+    <string name="choice_finances">Finances</string>
+    <string name="choice_health_concerns">Health Concerns</string>
+    <string name="choice_life_changes">Life Changes</string>
+    <string name="choice_other">Other</string>
+
+    <string name="choice_almost_daily">Almost Daily</string>
+    <string name="choice_frequently">Frequently</string>
+    <string name="choice_occasionally">Occasionally</string>
+    <string name="choice_rarely">Rarely</string>
+    <string name="choice_never">Never</string>
+
+    <string name="choice_always">Always</string>
+    <string name="choice_most_of_the_time">Most of the time</string>
+    <string name="choice_sometimes">Sometimes</string>
+
+    <string name="choice_yes_regularly">Yes, regularly</string>
+    <string name="choice_yes_occasionally">Yes, occasionally</string>
+    <string name="choice_yes_long_time_ago">Yes, a long time ago</string>
+    <string name="choice_no_never">No, I have never tried meditation</string>
+
+    <string name="choice_very_poor">Very Poor</string>
+    <string name="choice_poor">Poor</string>
+    <string name="choice_average">Average</string>
+    <string name="choice_good">Good</string>
+    <string name="choice_excellent">Excellent</string>
+
+    <string name="choice_very_unhappy">Very Unhappy</string>
+    <string name="choice_unhappy">Unhappy</string>
+    <string name="choice_neutral">Neutral</string>
+    <string name="choice_happy">Happy</string>
+    <string name="choice_very_happy">Very Happy</string>
+
+    <string name="title_preparing_plan">Preparing personalized plan for you…</string>
+    <string name="label_please_wait">Please wait…</string>
+    <string name="label_this_will_take_a_moment">This will take a moment. Get ready for an amazing well-being experience.</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_sleep">Sleep</string>
+    <string name="nav_insights">Insights</string>
+    <string name="nav_account">Account</string>
+    <string name="plan_type_meditation">Meditation</string>
+    <string name="plan_type_articles">Articles</string>
+    <string name="plan_type_breathing">Breathing</string>
+    <string name="plan_type_smart_journal">Smart Journal</string>
+    <string name="plan_intro_meditation">Intro to Meditation</string>
+    <string name="plan_intro_meditation_duration">8 mins</string>
+    <string name="plan_mindfulness_techniques">Mindfulness Techniques</string>
+    <string name="plan_mindfulness_duration">2 mins read</string>
+    <string name="plan_deep_breath_dynamics">Deep Breath Dynamics</string>
+    <string name="plan_deep_breath_duration">2 – 5 mins</string>
+    <string name="plan_smart_journal">What activities usually make you happy</string>
+    <string name="plan_smart_journal_duration">20s - 40s</string>
+    <string name="plan_gratitude_meditation">Gratitude Meditation</string>
+    <string name="plan_gratitude_duration">10 mins</string>
+    <string name="home_mood_question">How do you feel today?</string>
+    <string name="home_banner_title">Introduction to\nMental Health\nIssues</string>
+    <string name="home_title">Home</string>
+    <string name="home_action_chat_with_mindy">Chat with Mindy</string>
+    <string name="home_action_talk_with_coach">Talk with Coach</string>
+    <string name="home_plans_title">Your plans for today (%d/%d)</string>
+    <string name="action_not_implemented">Action not implemented yet!</string>
+
+    <string name="unit_seconds">%1$ds</string>
+    <string name="unit_minute">%1$d min</string>
+    <string name="unit_minutes">%1$d mins</string>
+    <string name="duration_range">%1$s–%2$s</string>
+</resources>
