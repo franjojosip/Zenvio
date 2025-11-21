@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.navigation
+package com.fjjukic.zenvio.core.navigation
 
 sealed class Screen(val route: String) {
     data object Prelogin : Screen("prelogin")

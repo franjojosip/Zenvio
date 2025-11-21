@@ -2,37 +2,33 @@ package com.fjjukic.zenvio.feature.walkthrough
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.core.data.preferences.PrefsManager
-import com.fjjukic.zenvio.core.data.repository.WalkthroughRepository
+import com.fjjukic.zenvio.feature.walkthrough.data.WalkthroughRepository
+import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughEffect
 import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughIntent
-import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughPage
+import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-open class WalkthroughViewModel @Inject constructor(
+class WalkthroughViewModel @Inject constructor(
     private val sharedPrefsManager: PrefsManager,
     private val repository: WalkthroughRepository
 ) : ViewModel() {
     private val _effect = MutableSharedFlow<WalkthroughEffect>()
-    val effect: SharedFlow<WalkthroughEffect> = _effect
+    val effect = _effect.asSharedFlow()
 
-    private val _uiState = MutableStateFlow<WalkthroughUiState>(WalkthroughUiState())
-    val uiState: StateFlow<WalkthroughUiState> = _uiState
-
+    private val _uiState = MutableStateFlow(WalkthroughUiState())
+    val uiState = _uiState.asStateFlow()
 
     init {
-        loadData()
-    }
-
-    private fun loadData() {
-        _uiState.value = _uiState.value.copy(pages = repository.getPages())
+        _uiState.update { it.copy(pages = repository.getPages()) }
     }
 
     fun onIntent(intent: WalkthroughIntent) {
@@ -44,29 +40,6 @@ open class WalkthroughViewModel @Inject constructor(
         }
     }
 
-    private fun handleBackPressed() {
-        val state = _uiState.value
-
-        if (!state.isFirstPage) {
-            previousPage()
-        } else {
-            viewModelScope.launch {
-                sendEffect(WalkthroughEffect.WalkthroughCanceled)
-            }
-        }
-    }
-
-    private suspend fun sendEffect(effect: WalkthroughEffect) {
-        _effect.emit(effect)
-    }
-
-    private fun previousPage() {
-        _uiState.value = _uiState.value.copy(
-            currentPage = _uiState.value.currentPage - 1
-        )
-    }
-
-
     private fun handleNextButtonClick() {
         if (_uiState.value.isLastPage) {
             finishWalkthrough()
@@ -75,41 +48,35 @@ open class WalkthroughViewModel @Inject constructor(
         }
     }
 
-    private fun finishWalkthrough() {
-        viewModelScope.launch {
-            sharedPrefsManager.setWalkthroughCompleted(true)
-            sendEffect(WalkthroughEffect.WalkthroughFinished)
+    private fun previousPage() {
+        _uiState.value = _uiState.value.copy(
+            currentPage = _uiState.value.currentPage - 1
+        )
+    }
+
+    private fun nextPage() {
+        _uiState.update {
+            if (it.isLastPage) {
+                it
+            } else {
+                it.copy(currentPage = it.currentPage + 1)
+            }
         }
     }
 
 
-    private fun nextPage() {
-        _uiState.value = _uiState.value.copy(
-            currentPage = _uiState.value.currentPage + 1
-        )
-    }
-
     private fun updatePage(page: Int) {
-        _uiState.value = _uiState.value.copy(currentPage = page)
+        _uiState.update { it.copy(currentPage = page) }
     }
 
-    data class WalkthroughUiState(
-        val pages: List<WalkthroughPage> = emptyList(),
-        val currentPage: Int = 0
-    ) {
-        val isFirstPage get() = currentPage == 0
-
-        val isLastPage get() = currentPage == pages.lastIndex
-
-        val startBtnText: Int?
-            get() = if (!isFirstPage && !isLastPage) R.string.btn_back else null
-
-        val endBtnText: Int
-            get() = if (isLastPage) R.string.btn_lets_get_started else R.string.btn_continue
+    private fun handleBackPressed() {
+        previousPage()
     }
 
-    sealed class WalkthroughEffect {
-        data object WalkthroughCanceled : WalkthroughEffect()
-        data object WalkthroughFinished : WalkthroughEffect()
+    private fun finishWalkthrough() {
+        viewModelScope.launch {
+            sharedPrefsManager.setWalkthroughCompleted(true)
+            _effect.emit(WalkthroughEffect.WalkthroughFinished)
+        }
     }
 }

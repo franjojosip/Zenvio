@@ -1,6 +1,5 @@
 package com.fjjukic.zenvio.feature.walkthrough.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -50,7 +49,6 @@ fun WalkthroughPageScreenPreview() {
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WalkthroughPageScreen(
     page: WalkthroughPage

@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.navigation
+package com.fjjukic.zenvio.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState

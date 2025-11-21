@@ -1,7 +1,7 @@
 package com.fjjukic.zenvio.core.di
 
-import com.fjjukic.zenvio.core.data.repository.WalkthroughRepository
-import com.fjjukic.zenvio.core.data.repository.WalkthroughRepositoryImpl
+import com.fjjukic.zenvio.feature.walkthrough.data.WalkthroughRepository
+import com.fjjukic.zenvio.feature.walkthrough.data.WalkthroughRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
