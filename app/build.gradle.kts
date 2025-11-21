@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,6 +12,14 @@ android {
     namespace = "com.fjjukic.zenvio"
     compileSdk = 36
 
+    // Load API keys from local.properties
+    val properties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            load(file.inputStream())
+        }
+    }
+
     defaultConfig {
         applicationId = "com.fjjukic.zenvio"
         minSdk = 24
@@ -18,6 +28,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // BuildConfig API key
+        buildConfigField(
+            "String",
+            "OPENAI_API_KEY",
+            "\"${properties.getProperty("OPENAI_API_KEY", "")}\""
+        )
     }
 
     buildTypes {
@@ -38,6 +55,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -56,6 +74,13 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.compose.pager)
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.gson)
 
     // Add Hilt DI dependencies
     implementation(libs.hilt.android)

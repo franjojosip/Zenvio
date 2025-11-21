@@ -57,32 +57,35 @@ import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = viewModel(),
-    onNavigate: (HomeIntent) -> Unit = {}
+    showChatScreen: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    HomeScreen(
-        state = state,
-        onIntent = { intent ->
-            viewModel.onIntent(intent)
-            onNavigate(intent)
-        }
-    )
-
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is HomeViewModel.HomeEffect.ShowToast -> {
+                is HomeEffect.ShowToast -> {
                     Toast.makeText(
                         context,
                         context.getString(effect.messageRes),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+
+                HomeEffect.ShowChatScreen -> {
+                    showChatScreen()
+                }
             }
         }
     }
+
+    HomeScreen(
+        state = state,
+        onIntent = { intent ->
+            viewModel.onIntent(intent)
+        }
+    )
 }
 
 @Composable

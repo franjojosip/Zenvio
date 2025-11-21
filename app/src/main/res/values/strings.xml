@@ -114,4 +114,60 @@
     <string name="unit_minute">%1$d min</string>
     <string name="unit_minutes">%1$d mins</string>
     <string name="duration_range">%1$s–%2$s</string>
+    <string name="label_years">years</string>
+
+    <!--    Content Descriptions-->
+    <string name="cd_navigate_back">Navigate back</string>
+    <string name="cd_choice_gender_male">Choice: Male</string>
+    <string name="cd_choice_gender_female">Choice: Female</string>
+    <string name="cd_choice_gender_other">Choice: Prefer not to say</string>
+
+    <!-- Main Goals Choices -->
+    <string name="cd_choice_manage_anxiety">Choice: Manage Anxiety</string>
+    <string name="cd_choice_reduce_stress">Choice: Reduce Stress</string>
+    <string name="cd_choice_improve_mood">Choice: Improve Mood</string>
+    <string name="cd_choice_improve_sleep">Choice: Improve Sleep</string>
+    <string name="cd_choice_enhance_relationships">Choice: Enhance Relationships</string>
+    <string name="cd_choice_boost_confidence">Choice: Boost Confidence</string>
+
+    <!-- Health Issue Area Choices -->
+    <string name="cd_choice_work_school">Choice: Work or School</string>
+    <string name="cd_choice_relationships">Choice: Relationships</string>
+    <string name="cd_choice_finances">Choice: Finances</string>
+    <string name="cd_choice_health_concerns">Choice: Health Concerns</string>
+    <string name="cd_choice_life_changes">Choice: Life Changes</string>
+    <string name="cd_choice_other">Choice: Other</string>
+
+    <!-- Anxiety Frequency Choices -->
+    <string name="cd_choice_almost_daily">Choice: Almost Daily</string>
+    <string name="cd_choice_frequently">Choice: Frequently</string>
+    <string name="cd_choice_occasionally">Choice: Occasionally</string>
+    <string name="cd_choice_rarely">Choice: Rarely</string>
+    <string name="cd_choice_never">Choice: Never</string>
+
+    <!-- Health Consistency Choices -->
+    <string name="cd_choice_always">Choice: Always</string>
+    <string name="cd_choice_most_of_the_time">Choice: Most of the time</string>
+    <string name="cd_choice_sometimes">Choice: Sometimes</string>
+    <!-- Note: "Rarely" and "Never" can reuse the strings from the anxiety frequency section if they are identical -->
+
+    <!-- Meditation Experience Choices -->
+    <string name="cd_choice_yes_regularly">Choice: Yes, regularly</string>
+    <string name="cd_choice_yes_occasionally">Choice: Yes, occasionally</string>
+    <string name="cd_choice_yes_long_time_ago">Choice: Yes, a long time ago</string>
+    <string name="cd_choice_no_never">Choice: No, I have never tried meditation</string>
+
+    <!-- Sleep Quality Choices -->
+    <string name="cd_choice_very_poor">Choice: Very Poor</string>
+    <string name="cd_choice_poor">Choice: Poor</string>
+    <string name="cd_choice_average">Choice: Average</string>
+    <string name="cd_choice_good">Choice: Good</string>
+    <string name="cd_choice_excellent">Choice: Excellent</string>
+
+    <!-- Happiness Choices -->
+    <string name="cd_choice_very_unhappy">Choice: Very Unhappy</string>
+    <string name="cd_choice_unhappy">Choice: Unhappy</string>
+    <string name="cd_choice_neutral">Choice: Neutral</string>
+    <string name="cd_choice_happy">Choice: Happy</string>
+    <string name="cd_choice_very_happy">Choice: Very Happy</string>
 </resources>

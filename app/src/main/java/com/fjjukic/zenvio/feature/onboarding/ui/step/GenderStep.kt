@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.feature.onboarding.ui
+package com.fjjukic.zenvio.feature.onboarding.ui.step
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.feature.onboarding.model.GenderType
 import com.fjjukic.zenvio.feature.onboarding.model.GenderUi
-import com.fjjukic.zenvio.feature.onboarding.model.getGenders
+import com.fjjukic.zenvio.feature.onboarding.model.mapGendersToUiModels
 import com.fjjukic.zenvio.ui.defaults.AppInputDefaults
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 
@@ -43,120 +42,92 @@ import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 @Composable
 fun GenderStepPreview() {
     ZenvioTheme {
-        GenderStep(getGenders()) {}
+        GenderStep(mapGendersToUiModels()) {}
     }
 }
 
 @Composable
 fun GenderStep(genders: List<GenderUi>, onSelect: (GenderType) -> Unit) {
-    BaseStep(
-        titleRes = R.string.title_onboarding_gender_step,
-        subtitleRes = R.string.subtitle_onboarding_gender_step,
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                genders.filter { it.genderType != GenderType.OTHER }
-                    .forEach { GenderChoice(it, onSelect) }
-            }
+            genders.filter { it.genderType != GenderType.OTHER }
+                .forEach { gender ->
+                    GenderButton(
+                        item = gender,
+                        onSelect = { onSelect(gender.genderType) }
+                    )
+                }
+        }
 
+        Spacer(Modifier.height(42.dp))
 
-            Spacer(Modifier.height(42.dp))
-
-            genders.firstOrNull { it.genderType == GenderType.OTHER }?.let {
-                OtherChoice(it, onSelect)
-            }
+        genders.firstOrNull { it.genderType == GenderType.OTHER }?.let { gender ->
+            OtherGenderButton(
+                item = gender,
+                onSelect = { onSelect(gender.genderType) }
+            )
         }
     }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun GenderChoiceSelectedPreview() {
+private fun GenderButtonSelectedPreview() {
     ZenvioTheme {
-        GenderChoice(
-            GenderUi(
+        GenderButton(
+            item = GenderUi(
                 genderType = GenderType.MALE,
                 isSelected = true,
                 textRes = R.string.label_gender_male,
+                cdTextRes = R.string.cd_choice_gender_other,
                 iconRes = R.drawable.ic_male,
-            )
-        ) {}
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun GenderChoiceNotSelectedPreview() {
-    ZenvioTheme {
-        GenderChoice(
-            GenderUi(
-                genderType = GenderType.MALE,
-                isSelected = false,
-                textRes = R.string.label_gender_male,
-                iconRes = R.drawable.ic_male,
-            )
-        ) {}
+            ),
+            onSelect = {}
+        )
     }
 }
 
 @Composable
-fun GenderChoice(
+private fun GenderButton(
     item: GenderUi,
-    onSelect: ((GenderType) -> Unit) = {}
+    onSelect: () -> Unit
 ) {
-    val textColor = if (item.isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.onBackground.copy(0.8f)
-    }
-
-    val imageTint = if (item.isSelected) {
-        Color.White
-    } else {
-        Color.Black
-    }
-
-    val boxBackgroundColor = if (item.isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        Color.White.copy(alpha = 0.3f)
-    }
+    val textColor =
+        if (item.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(
+            0.8f
+        )
+    val imageTint = if (item.isSelected) Color.White else Color.Black
+    val boxBackgroundColor =
+        if (item.isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.3f)
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onSelect() }
     ) {
         Box(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
                 .border(width = 1.dp, color = AppInputDefaults.borderColor, shape = CircleShape)
-                .background(
-                    color = boxBackgroundColor
-                )
-                .clickable {
-                    onSelect(item.genderType)
-                },
+                .background(color = boxBackgroundColor),
             contentAlignment = Alignment.Center
         ) {
             item.iconRes?.let {
                 Icon(
                     imageVector = ImageVector.vectorResource(it),
-                    contentDescription = null,
+                    contentDescription = stringResource(item.textRes),
                     tint = imageTint,
-                    modifier = Modifier
-                        .size(60.dp)
-                        .align(Alignment.Center)
+                    modifier = Modifier.size(60.dp) // .align() is redundant here
                 )
             }
         }
@@ -171,62 +142,45 @@ fun GenderChoice(
     }
 }
 
+
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun OtherChoiceSelectedPreview() {
+private fun OtherGenderButtonSelectedPreview() {
     ZenvioTheme {
-        OtherChoice(
-            GenderUi(
+        OtherGenderButton(
+            item = GenderUi(
                 genderType = GenderType.OTHER,
                 isSelected = true,
                 textRes = R.string.label_gender_other,
-            )
-        ) {}
+                cdTextRes = R.string.cd_choice_gender_other,
+            ),
+            onSelect = {}
+        )
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun OtherChoiceNotSelectedPreview() {
-    ZenvioTheme {
-        OtherChoice(
-            GenderUi(
-                genderType = GenderType.OTHER,
-                isSelected = false,
-                textRes = R.string.label_gender_other,
-            )
-        ) {}
-    }
-}
 
 @Composable
-fun OtherChoice(
+private fun OtherGenderButton(
     item: GenderUi,
-    onSelect: ((GenderType) -> Unit) = {}
+    onSelect: () -> Unit
 ) {
-    val boxBackgroundColor = if (item.isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        Color.White.copy(alpha = 0.3f)
-    }
-
+    val boxBackgroundColor =
+        if (item.isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.3f)
     val textColor = if (item.isSelected) Color.White else Color.Black
 
     Box(
         modifier = Modifier
-            .wrapContentWidth()
             .height(60.dp)
             .clip(CircleShape)
             .border(width = 1.dp, color = AppInputDefaults.borderColor, shape = CircleShape)
-            .background(
-                color = boxBackgroundColor
-            )
-            .clickable { onSelect(item.genderType) },
+            .background(color = boxBackgroundColor)
+            .clickable { onSelect() }
+            .padding(horizontal = 32.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = stringResource(item.textRes),
-            modifier = Modifier.padding(horizontal = 32.dp),
             style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = textColor,

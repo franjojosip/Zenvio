@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.feature.onboarding.ui
+package com.fjjukic.zenvio.feature.onboarding.ui.step
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -32,86 +32,70 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fjjukic.zenvio.R
-import com.fjjukic.zenvio.feature.onboarding.model.OnboardingStep
 import com.fjjukic.zenvio.feature.onboarding.model.SelectChoiceUi
 import com.fjjukic.zenvio.ui.defaults.AppInputDefaults
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 
-
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun MultiSelectStepPreview() {
+fun SelectStepPreview() {
     ZenvioTheme {
         SelectStep(
-            OnboardingStep.ChoiceSelect(
-                titleRes = R.string.title_onboarding_main_goals_step,
-                subtitleRes = R.string.subtitle_onboarding_main_goals_step,
-                choices = listOf(
-                    SelectChoiceUi(
-                        1,
-                        R.string.choice_work_school,
-                        false
-                    ),
-                    SelectChoiceUi(
-                        2,
-                        R.string.choice_relationships,
-                        true
-                    )
+            choices = listOf(
+                SelectChoiceUi(
+                    id = 1,
+                    textRes = R.string.choice_work_school,
+                    cdTextRes = R.string.cd_choice_work_school,
+                    isSelected = false
+                ),
+                SelectChoiceUi(
+                    id = 2,
+                    textRes = R.string.choice_relationships,
+                    cdTextRes = R.string.cd_choice_relationships,
+                    isSelected = true
                 )
-            )
-        ) {}
+            ),
+            onClick = {}
+        )
     }
 }
 
 @Composable
-fun SelectStep(step: OnboardingStep.ChoiceSelect, onClick: (Int) -> Unit) {
+fun SelectStep(choices: List<SelectChoiceUi>, onClick: (Int) -> Unit) {
     val listState = rememberLazyListState()
-    BaseStep(
-        titleRes = step.titleRes,
-        subtitleRes = step.subtitleRes,
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 36.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        state = listState,
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 36.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            state = listState,
-        ) {
-            items(step.choices, key = { it.id }) { choice ->
-                ChoiceCard(choice, onClick)
-            }
-
-            item { Spacer(Modifier.height(16.dp)) }
+        items(choices, key = { it.id }) { choice ->
+            ChoiceCard(
+                choice = choice,
+                onClick = { onClick(choice.id) }
+            )
         }
+
+        item { Spacer(Modifier.height(16.dp)) }
     }
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun MultiSelectChoiceSelectedPreview() {
+private fun ChoiceCardPreview() {
     ZenvioTheme {
+        // This single preview can show the selected state
         ChoiceCard(
-            SelectChoiceUi(
-                1,
-                R.string.choice_work_school,
-                false
-            )
-        ) {}
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun SelectChoiceNotSelectedPreview() {
-    ZenvioTheme {
-        ChoiceCard(
-            SelectChoiceUi(
-                1,
-                R.string.choice_work_school,
-                true
-            )
-        ) {}
+            choice = SelectChoiceUi(
+                id = 1,
+                textRes = R.string.choice_relationships,
+                cdTextRes = R.string.cd_choice_relationships,
+                isSelected = true
+            ),
+            onClick = {}
+        )
     }
 }
 
@@ -155,7 +139,7 @@ fun ChoiceCard(
         if (choice.isSelected) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_check),
-                contentDescription = null,
+                contentDescription = stringResource(choice.cdTextRes),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .size(28.dp)

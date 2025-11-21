@@ -1,5 +1,6 @@
-package com.fjjukic.zenvio.feature.onboarding.ui
+package com.fjjukic.zenvio.feature.onboarding.ui.common
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,12 +33,13 @@ fun BaseStepPreview() {
 
 @Composable
 fun BaseStep(
-    titleRes: Int,
-    subtitleRes: Int,
+    @StringRes titleRes: Int,
+    @StringRes subtitleRes: Int,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally

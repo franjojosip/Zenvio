@@ -1,18 +1,20 @@
-package com.fjjukic.zenvio.di
+package com.fjjukic.zenvio.core.di
 
 import com.fjjukic.zenvio.core.data.repository.WalkthroughRepository
 import com.fjjukic.zenvio.core.data.repository.WalkthroughRepositoryImpl
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object WalkthroughModule {
+abstract class WalkthroughModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideWalkthroughRepository(): WalkthroughRepository = WalkthroughRepositoryImpl()
+    abstract fun bindWalkthroughRepository(
+        impl: WalkthroughRepositoryImpl
+    ): WalkthroughRepository
 }

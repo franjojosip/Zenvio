@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.di
+package com.fjjukic.zenvio.core.di
 
 import com.fjjukic.zenvio.core.data.preferences.PrefsManager
 import com.fjjukic.zenvio.core.data.preferences.PrefsManagerImpl

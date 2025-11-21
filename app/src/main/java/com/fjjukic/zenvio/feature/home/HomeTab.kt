@@ -65,3 +65,9 @@ sealed interface HomeIntent {
     data object BannerClicked : HomeIntent
     data object SearchClicked : HomeIntent
 }
+
+// One time events
+sealed interface HomeEffect {
+    data class ShowToast(val messageRes: Int) : HomeEffect
+    data object ShowChatScreen : HomeEffect
+}

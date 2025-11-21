@@ -6,6 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.fjjukic.zenvio.feature.chat.ChatScreen
 import com.fjjukic.zenvio.feature.home.HomeRoute
 import com.fjjukic.zenvio.feature.onboarding.ui.OnboardingScreen
 import com.fjjukic.zenvio.feature.prelogin.PreloginScreen
@@ -55,7 +56,15 @@ fun AppNavHost() {
         }
 
         composable(Screen.Home.route) {
-            HomeRoute()
+            HomeRoute(
+                showChatScreen = {
+                    navController.navigate(Screen.Chat.route)
+                }
+            )
+        }
+
+        composable(Screen.Chat.route) {
+            ChatScreen()
         }
     }
 }
