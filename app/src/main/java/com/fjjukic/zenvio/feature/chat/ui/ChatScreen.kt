@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.feature.chat
+package com.fjjukic.zenvio.feature.chat.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fjjukic.zenvio.R
+import com.fjjukic.zenvio.feature.chat.ChatViewModel
 import com.fjjukic.zenvio.feature.chat.model.ChatIntent
 import com.fjjukic.zenvio.feature.chat.model.ChatMessage
 import com.fjjukic.zenvio.ui.defaults.AppInputDefaults
@@ -42,6 +43,7 @@ import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()

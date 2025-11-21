@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.core.data.repository
+package com.fjjukic.zenvio.feature.chat.data.repository
 
 import com.fjjukic.zenvio.core.api.ChatRequest
 import com.fjjukic.zenvio.core.api.ChatRoleMessage

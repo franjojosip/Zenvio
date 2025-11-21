@@ -1,7 +1,6 @@
-package com.fjjukic.zenvio.feature.chat.domain
+package com.fjjukic.zenvio.feature.chat.model
 
-import com.fjjukic.zenvio.core.data.repository.ChatRepository
-import com.fjjukic.zenvio.feature.chat.model.ChatMessage
+import com.fjjukic.zenvio.feature.chat.data.repository.ChatRepository
 import javax.inject.Inject
 
 class SendMessageUseCase @Inject constructor(

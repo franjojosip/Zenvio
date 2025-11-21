@@ -50,7 +50,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun WalkthroughScreen(
     viewModel: WalkthroughViewModel = hiltViewModel(),
-    onFinished: () -> Unit
+    onNavigateToNextScreen: () -> Unit
 ) {
     CustomSystemBars(lightStatusBarIcons = false, lightNavigationBarIcons = true)
 
@@ -68,7 +68,7 @@ fun WalkthroughScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is WalkthroughEffect.WalkthroughCanceled -> activity?.finish()
-                is WalkthroughEffect.WalkthroughFinished -> onFinished()
+                is WalkthroughEffect.WalkthroughFinished -> onNavigateToNextScreen()
             }
         }
     }

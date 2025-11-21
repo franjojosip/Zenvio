@@ -1,42 +1,52 @@
+// In file: core/data/preferences/PrefsManager.kt
+
 package com.fjjukic.zenvio.core.data.preferences
 
-import android.content.Context
-import androidx.core.content.edit
-import dagger.hilt.android.qualifiers.ApplicationContext
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface PrefsManager {
-    fun setOnboardingCompleted(value: Boolean)
-    fun isOnboardingCompleted(): Boolean
+    fun isWalkthroughCompleted(): Flow<Boolean>
+    fun isOnboardingCompleted(): Flow<Boolean>
 
-    fun setWalkthroughCompleted(value: Boolean)
-    fun isWalkthroughCompleted(): Boolean
+    suspend fun setWalkthroughCompleted(completed: Boolean)
+    suspend fun setOnboardingCompleted(completed: Boolean)
 }
 
-class PrefsManagerImpl @Inject constructor(
-    @ApplicationContext context: Context
+class DataStorePrefsManager @Inject constructor(
+    private val dataStore: DataStore<Preferences>
 ) : PrefsManager {
-    private val prefs = context.getSharedPreferences(ZENVIO_PREFS, Context.MODE_PRIVATE)
-
-    override fun setOnboardingCompleted(value: Boolean) {
-        prefs.edit { putBoolean(ONBOARDING_DONE, value) }
+    private object Keys {
+        val WALKTHROUGH_COMPLETED = booleanPreferencesKey("walkthrough_completed")
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
-    override fun isOnboardingCompleted(): Boolean {
-        return prefs.getBoolean(ONBOARDING_DONE, false)
+    override fun isWalkthroughCompleted(): Flow<Boolean> {
+        return dataStore.data.map { preferences ->
+            preferences[Keys.WALKTHROUGH_COMPLETED] ?: false
+        }
     }
 
-    override fun setWalkthroughCompleted(value: Boolean) {
-        prefs.edit { putBoolean(WALKTHROUGH_DONE, value) }
+    override fun isOnboardingCompleted(): Flow<Boolean> {
+        return dataStore.data.map { preferences ->
+            preferences[Keys.ONBOARDING_COMPLETED] ?: false
+        }
     }
 
-    override fun isWalkthroughCompleted(): Boolean {
-        return prefs.getBoolean(WALKTHROUGH_DONE, false)
+    override suspend fun setWalkthroughCompleted(completed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[Keys.WALKTHROUGH_COMPLETED] = completed
+        }
     }
 
-    companion object {
-        private const val ZENVIO_PREFS = "zenvio_prefs"
-        private const val ONBOARDING_DONE = "onboarding_done"
-        private const val WALKTHROUGH_DONE = "walkthrough_done"
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[Keys.ONBOARDING_COMPLETED] = completed
+        }
     }
 }

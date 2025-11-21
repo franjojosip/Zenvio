@@ -47,7 +47,7 @@ import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 @Composable
 fun PreparingPlanScreen(
     viewModel: PreparingPlanViewModel = hiltViewModel(),
-    onFinished: () -> Unit = {}
+    onNavigateToNextScreen: () -> Unit = {}
 ) {
     CustomSystemBars(lightStatusBarIcons = true, lightNavigationBarIcons = true)
 
@@ -59,7 +59,7 @@ fun PreparingPlanScreen(
 
         viewModel.effect.collect { effect ->
             when (effect) {
-                PreparingPlanEffect.OnFinished -> onFinished()
+                PreparingPlanEffect.OnFinished -> onNavigateToNextScreen()
             }
         }
     }

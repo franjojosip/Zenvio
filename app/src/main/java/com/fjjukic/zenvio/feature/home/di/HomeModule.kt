@@ -1,7 +1,7 @@
-package com.fjjukic.zenvio.core.di
+package com.fjjukic.zenvio.feature.home.di
 
-import com.fjjukic.zenvio.core.data.repository.HomeRepository
-import com.fjjukic.zenvio.core.data.repository.HomeRepositoryImpl
+import com.fjjukic.zenvio.feature.home.data.repository.HomeRepository
+import com.fjjukic.zenvio.feature.home.data.repository.HomeRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.core.di
+package com.fjjukic.zenvio.feature.walkthrough.di
 
 import com.fjjukic.zenvio.feature.walkthrough.data.WalkthroughRepository
 import com.fjjukic.zenvio.feature.walkthrough.data.WalkthroughRepositoryImpl

@@ -1,7 +1,7 @@
-package com.fjjukic.zenvio.core.di
+package com.fjjukic.zenvio.feature.chat.di
 
-import com.fjjukic.zenvio.core.data.repository.ChatRepository
-import com.fjjukic.zenvio.core.data.repository.ChatRepositoryImpl
+import com.fjjukic.zenvio.feature.chat.data.repository.ChatRepository
+import com.fjjukic.zenvio.feature.chat.data.repository.ChatRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -56,7 +56,7 @@ import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
-    onFinished: () -> Unit = {}
+    onNavigateToNextScreen: () -> Unit = {}
 ) {
     CustomSystemBars(lightStatusBarIcons = true, lightNavigationBarIcons = true)
 
@@ -67,7 +67,7 @@ fun OnboardingScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 OnboardingEffect.OnboardingCanceled -> activity?.finish()
-                OnboardingEffect.OnboardingFinished -> onFinished()
+                OnboardingEffect.OnboardingFinished -> onNavigateToNextScreen()
             }
         }
     }

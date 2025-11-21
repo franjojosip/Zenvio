@@ -3,7 +3,10 @@ package com.fjjukic.zenvio.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fjjukic.zenvio.R
-import com.fjjukic.zenvio.core.data.repository.HomeRepository
+import com.fjjukic.zenvio.feature.home.data.repository.HomeRepository
+import com.fjjukic.zenvio.feature.home.model.HomeEffect
+import com.fjjukic.zenvio.feature.home.model.HomeIntent
+import com.fjjukic.zenvio.feature.home.model.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

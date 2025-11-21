@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.feature.home
+package com.fjjukic.zenvio.feature.home.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -45,10 +45,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fjjukic.zenvio.R
+import com.fjjukic.zenvio.feature.home.HomeViewModel
 import com.fjjukic.zenvio.feature.home.model.ActionCard
+import com.fjjukic.zenvio.feature.home.model.HomeEffect
+import com.fjjukic.zenvio.feature.home.model.HomeIntent
+import com.fjjukic.zenvio.feature.home.model.HomeTab
+import com.fjjukic.zenvio.feature.home.model.HomeUiState
 import com.fjjukic.zenvio.feature.home.model.MoodSelectorSection
 import com.fjjukic.zenvio.feature.home.model.PlanTimelineItem
 import com.fjjukic.zenvio.ui.defaults.AppInputDefaults
@@ -56,7 +61,7 @@ import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 
 @Composable
 fun HomeRoute(
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
     showChatScreen: () -> Unit = {}
 ) {
     val context = LocalContext.current

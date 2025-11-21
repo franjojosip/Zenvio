@@ -25,7 +25,7 @@ import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.core.util.CustomSystemBars
 
 @Composable
-fun PreloginScreen(onContinueClick: (() -> Unit) = {}) {
+fun PreloginScreen(onNavigateToNextScreen: (() -> Unit) = {}) {
     CustomSystemBars(lightStatusBarIcons = false, lightNavigationBarIcons = false)
 
     Box(
@@ -44,7 +44,7 @@ fun PreloginScreen(onContinueClick: (() -> Unit) = {}) {
         )
 
         Button(
-            onClick = onContinueClick,
+            onClick = onNavigateToNextScreen,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp, start = 24.dp, end = 24.dp)

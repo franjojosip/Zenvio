@@ -1,4 +1,4 @@
-package com.fjjukic.zenvio.feature.home
+package com.fjjukic.zenvio.feature.home.model
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

@@ -1,8 +1,8 @@
-package com.fjjukic.zenvio.core.data.repository
+package com.fjjukic.zenvio.feature.home.data.repository
 
 import com.fjjukic.zenvio.R
-import com.fjjukic.zenvio.feature.home.PlanItem
-import com.fjjukic.zenvio.feature.home.PlanType
+import com.fjjukic.zenvio.feature.home.model.PlanItem
+import com.fjjukic.zenvio.feature.home.model.PlanType
 import javax.inject.Inject
 
 interface HomeRepository {
