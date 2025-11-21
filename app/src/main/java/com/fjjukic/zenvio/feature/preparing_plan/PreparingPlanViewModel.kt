@@ -1,48 +1,45 @@
 package com.fjjukic.zenvio.feature.preparing_plan
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fjjukic.zenvio.feature.preparing_plan.model.PreparingPlanEffect
 import com.fjjukic.zenvio.feature.preparing_plan.model.PreparingPlanIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PreparingPlanViewModel @Inject constructor() : ViewModel() {
     private val _effect = MutableSharedFlow<PreparingPlanEffect>()
-    val effect: SharedFlow<PreparingPlanEffect> = _effect
+    val effect = _effect.asSharedFlow()
 
-    var uiState by mutableStateOf(PreparingPlanStateUi())
-        private set
+    private var progressJob: Job? = null
 
     fun onIntent(intent: PreparingPlanIntent) {
         when (intent) {
-            PreparingPlanIntent.Start -> simulateProgress()
+            PreparingPlanIntent.Start -> simulateProcessDuration()
         }
     }
 
-    private fun simulateProgress() {
-        viewModelScope.launch {
-            for (i in 0..100) {
-                uiState = uiState.copy(progress = i)
-                delay(35)
-            }
+    private fun simulateProcessDuration() {
+        if (progressJob?.isActive == true) return
+
+        progressJob = viewModelScope.launch {
+            delay(TOTAL_PREPARATION_TIME_MS)
             _effect.emit(PreparingPlanEffect.OnFinished)
         }
     }
 
-    data class PreparingPlanStateUi(
-        val progress: Int = 0 // 0–100
-    )
-
-    sealed class PreparingPlanEffect {
-        data object OnFinished : PreparingPlanEffect()
+    override fun onCleared() {
+        progressJob?.cancel()
+        super.onCleared()
     }
 
+    companion object {
+        const val TOTAL_PREPARATION_TIME_MS = 2000L
+    }
 }
