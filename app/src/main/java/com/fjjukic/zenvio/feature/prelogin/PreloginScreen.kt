@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -17,9 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.core.util.CustomSystemBars
@@ -40,6 +43,16 @@ fun PreloginScreen(onNavigateToNextScreen: (() -> Unit) = {}) {
             tint = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier
                 .size(120.dp)
+                .align(Alignment.Center)
+        )
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.displayLarge.copy(
+                color = Color.White,
+                fontWeight = FontWeight.Medium
+            ),
+            modifier = Modifier
+                .offset(y = 90.dp)
                 .align(Alignment.Center)
         )
 
