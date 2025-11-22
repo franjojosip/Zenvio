@@ -35,7 +35,7 @@ fun ActionCardPreview() {
     ZenvioTheme {
         ActionCard(
             title = "Action Card",
-            imageRes = R.drawable.img_chat_mindypng,
+            imageRes = R.drawable.img_chat_zenvio,
         ) { }
     }
 }

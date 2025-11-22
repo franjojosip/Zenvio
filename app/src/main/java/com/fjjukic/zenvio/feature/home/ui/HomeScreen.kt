@@ -150,9 +150,9 @@ fun HomeScreen(
                     ) {
                         ActionCard(
                             title = stringResource(R.string.title_chat_with_zenvio),
-                            imageRes = R.drawable.img_chat_mindypng,
+                            imageRes = R.drawable.img_chat_zenvio,
                             modifier = Modifier.weight(1f),
-                            onClick = { onIntent(HomeIntent.ChatWithMindyClicked) }
+                            onClick = { onIntent(HomeIntent.ChatWithZenvioClicked) }
                         )
                         ActionCard(
                             title = stringResource(R.string.home_action_talk_with_coach),

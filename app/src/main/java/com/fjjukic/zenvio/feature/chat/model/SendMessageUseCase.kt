@@ -4,18 +4,19 @@ import android.util.Log
 import com.fjjukic.zenvio.feature.chat.data.repository.ChatRepository
 import java.net.UnknownHostException
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 class GetAIResponseUseCase @Inject constructor(
     private val repository: ChatRepository
 ) {
     suspend operator fun invoke(messages: List<ChatMessage>): Result<ChatMessage> {
         return try {
-            val receivedMessageContent = repository.sendMessage(messages)
+            val receivedContent = repository.sendMessage(messages)
 
             Result.success(
                 ChatMessage.Standard(
                     role = ChatRole.ASSISTANT,
-                    content = receivedMessageContent
+                    content = receivedContent
                 )
             )
 
@@ -31,6 +32,9 @@ class GetAIResponseUseCase @Inject constructor(
                 is java.net.SocketTimeoutException,
                 is javax.net.ssl.SSLException,
                 is java.net.ConnectException -> ChatError.NetworkFailure()
+
+                // On coroutine canceled
+                is CancellationException -> ChatError.CancellationFailure()
 
                 // Fallback
                 else -> ChatError.UnknownError()

@@ -57,11 +57,11 @@ class HomeViewModel @Inject constructor(
                     _state.value = _state.value.copy(selectedTab = intent.tab)
                 }
 
-                HomeIntent.ChatWithMindyClicked -> {
+                HomeIntent.ChatWithZenvioClicked -> {
                     _effect.emit(HomeEffect.ShowChatScreen)
                 }
 
-                HomeIntent.ChatWithMindyClicked, HomeIntent.TalkWithCoachClicked, HomeIntent.BannerClicked, HomeIntent.SearchClicked -> {
+                HomeIntent.ChatWithZenvioClicked, HomeIntent.TalkWithCoachClicked, HomeIntent.BannerClicked, HomeIntent.SearchClicked -> {
                     _effect.emit(HomeEffect.ShowToast(R.string.action_not_implemented))
                 }
             }

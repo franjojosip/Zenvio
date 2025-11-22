@@ -7,6 +7,9 @@ sealed class ChatError(message: String) : Exception(message) {
     // API reachable but failed or network unstable
     class NetworkFailure : ChatError("Network error occurred. Please try again.")
 
+    // On job canceled
+    class CancellationFailure : ChatError("")
+
     // Unexpected error
     class UnknownError : ChatError("Something went wrong. Please try again.")
 }

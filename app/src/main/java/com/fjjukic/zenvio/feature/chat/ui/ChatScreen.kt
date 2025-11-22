@@ -9,6 +9,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -25,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,6 +42,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,13 +60,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -70,11 +74,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fjjukic.zenvio.R
+import com.fjjukic.zenvio.core.util.asString
 import com.fjjukic.zenvio.feature.chat.ChatViewModel
+import com.fjjukic.zenvio.feature.chat.data.util.markdown.MarkdownMessage
 import com.fjjukic.zenvio.feature.chat.model.ChatIntent
 import com.fjjukic.zenvio.feature.chat.model.ChatMessage
 import com.fjjukic.zenvio.feature.chat.model.ChatRole
 import com.fjjukic.zenvio.feature.chat.model.ChatStateUi
+import com.fjjukic.zenvio.feature.chat.model.UiText
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 import kotlinx.coroutines.launch
 
@@ -117,18 +124,33 @@ fun ChatScreenStateless(
                 onEvent = onEvent
             )
         },
-        // The container holds the list and the input field
         content = { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding) // Respects Scaffold's top bar
-                    .imePadding()       // Handles keyboard and navigation bar insets
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .navigationBarsPadding()
+                    .imePadding()
             ) {
-                MessageList(
-                    messages = state.messages,
-                    listState = listState,
-                    modifier = Modifier.weight(1f) // List takes up all available space
+
+                Box(modifier = Modifier.weight(1f)) {
+                    MessageList(
+                        messages = state.messages,
+                        listState = listState,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    if (state.isLoading) {
+                        LoadingBubble(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 20.dp)
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.LightGray.copy(alpha = 0.3f)
                 )
                 MessageInput(
                     text = state.input,
@@ -149,24 +171,29 @@ fun MessageList(
 ) {
     LazyColumn(
         state = listState,
-        modifier = modifier.padding(horizontal = 16.dp), // Horizontal padding for messages
+        modifier = modifier
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp) // Padding at the top and bottom of the list
+        contentPadding = PaddingValues(
+            top = 16.dp,
+            bottom = 32.dp
+        ) // Padding at the top and bottom of the list
     ) {
         items(messages, key = { it.id }) { msg ->
             when (msg) {
                 is ChatMessage.Standard ->
-                    if (msg.role == ChatRole.USER) UserMessage(msg.content)
-                    else AssistantMessage(msg.content)
-
-                is ChatMessage.Loading -> LoadingBubble()
+                    if (msg.role == ChatRole.USER) {
+                        UserMessage(msg.content)
+                    } else {
+                        AssistantMessage(msg.content)
+                    }
             }
         }
     }
 }
 
 @Composable
-fun UserMessage(text: String) {
+fun UserMessage(uiText: UiText) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
@@ -178,36 +205,13 @@ fun UserMessage(text: String) {
                     MaterialTheme.colorScheme.primary,
                     RoundedCornerShape(8.dp, 0.dp, 8.dp, 8.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .padding(14.dp)
         ) {
             Text(
-                text,
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-    }
-}
-
-@Composable
-fun AssistantMessage(text: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Box(
-            modifier = Modifier
-                .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
-                .background(Color(0xFFEAEAEA), RoundedCornerShape(0.dp, 8.dp, 8.dp, 8.dp))
-                .padding(horizontal = 16.dp, vertical = 10.dp)
-        ) {
-            Text(
-                text,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Normal,
-                    color = Color.Black.copy(alpha = 0.85f),
-                    textAlign = TextAlign.Start,
-                    lineHeight = 28.sp
+                uiText.asString(),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    lineHeight = 25.sp
                 )
             )
         }
@@ -215,7 +219,26 @@ fun AssistantMessage(text: String) {
 }
 
 @Composable
-fun LoadingBubble() {
+fun AssistantMessage(text: UiText) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                .background(Color(0xFFEFEFEF), RoundedCornerShape(0.dp, 8.dp, 8.dp, 8.dp))
+                .padding(14.dp)
+        ) {
+            MarkdownMessage(text.asString())
+        }
+    }
+}
+
+@Composable
+fun LoadingBubble(
+    modifier: Modifier = Modifier
+) {
     val bounceUp = (-8).dp
     val bounceDown = 0.dp
     val infiniteTransition = rememberInfiniteTransition(label = "loading-bubble-transition")
@@ -235,33 +258,45 @@ fun LoadingBubble() {
     }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(end = 60.dp),
-        horizontalArrangement = Arrangement.Start
+            .padding(start = 16.dp, end = 16.dp),
+        horizontalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = Modifier
-                .background(Color(0xFFEAEAEA), RoundedCornerShape(0.dp, 8.dp, 8.dp, 8.dp))
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 10.dp),
+                .shadow(
+                    elevation = 3.dp,
+                    shape = RoundedCornerShape(8.dp),
+                    clip = false
+                )
+                .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                .border(
+                    width = 1.dp,
+                    color = Color.LightGray.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .background(Color.White, RoundedCornerShape(8.dp))
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 animatedValues.forEach { animatedValue ->
                     Box(
                         modifier = Modifier
                             .graphicsLayer { translationY = animatedValue.value.toPx() }
-                            .background(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                shape = RoundedCornerShape(50)
-                            )
                             .size(8.dp)
+                            .background(
+                                color = Color.Gray.copy(alpha = 0.3f),
+                                shape = CircleShape
+                            )
                     )
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun MessageInput(
@@ -272,7 +307,7 @@ fun MessageInput(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp), // A single, simple padding
+            .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
@@ -282,8 +317,8 @@ fun MessageInput(
             placeholder = { Text(stringResource(R.string.label_type_a_message)) },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF0F0F0),
-                unfocusedContainerColor = Color(0xFFF0F0F0),
+                focusedContainerColor = Color(0xFFEFEFEF),
+                unfocusedContainerColor = Color(0xFFEFEFEF),
                 unfocusedPlaceholderColor = Color.Gray,
                 focusedPlaceholderColor = Color.Gray,
                 focusedBorderColor = Color.Transparent,
@@ -383,13 +418,18 @@ fun ChatScreenContentPreview() {
         val sampleMessages = listOf(
             ChatMessage.Standard(
                 role = ChatRole.ASSISTANT,
-                content = "Hello! How can I help you today?"
+                content = UiText.StringResource(R.string.assistant_intro_message)
             ),
-            ChatMessage.Standard(role = ChatRole.USER, content = "What is Jetpack Compose?"),
-            ChatMessage.Loading()
+            ChatMessage.Standard(
+                role = ChatRole.USER,
+                content = UiText.StringResource(R.string.user_example_message)
+            )
         )
         ChatScreenStateless(
-            state = ChatStateUi(messages = sampleMessages, input = "Some text"),
+            state = ChatStateUi(
+                messages = sampleMessages,
+                input = stringResource(R.string.plan_intro_meditation)
+            ),
             onEvent = {},
             onNavigateBack = {}
         )

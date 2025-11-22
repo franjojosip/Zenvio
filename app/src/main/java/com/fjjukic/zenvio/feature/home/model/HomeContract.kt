@@ -60,7 +60,7 @@ sealed interface HomeIntent {
     data class MoodSelected(val mood: Mood) : HomeIntent
     data class PlanClicked(val id: String) : HomeIntent
     data class BottomTabSelected(val tab: HomeTab) : HomeIntent
-    data object ChatWithMindyClicked : HomeIntent
+    data object ChatWithZenvioClicked : HomeIntent
     data object TalkWithCoachClicked : HomeIntent
     data object BannerClicked : HomeIntent
     data object SearchClicked : HomeIntent
