@@ -9,7 +9,7 @@ import com.fjjukic.zenvio.feature.home.ui.HomeRoute
 
 fun NavGraphBuilder.mainGraph(navController: NavHostController) {
     navigation(
-        startDestination = Screen.Chat.route,
+        startDestination = Screen.Home.route,
         route = Graph.MAIN
     ) {
         composable(route = Screen.Home.route) {

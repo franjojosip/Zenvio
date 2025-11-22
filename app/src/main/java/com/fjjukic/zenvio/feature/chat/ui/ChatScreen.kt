@@ -176,8 +176,8 @@ fun MessageList(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(
             top = 16.dp,
-            bottom = 32.dp
-        ) // Padding at the top and bottom of the list
+            bottom = 60.dp
+        )
     ) {
         items(messages, key = { it.id }) { msg ->
             when (msg) {

@@ -1,6 +1,5 @@
 package com.fjjukic.zenvio.feature.chat.data.util.markdown
 
-
 sealed class MarkdownBlock {
     data class Heading(val level: Int, val text: String) : MarkdownBlock()
     data class Paragraph(val text: String) : MarkdownBlock()
@@ -13,10 +12,16 @@ sealed class MarkdownBlock {
 
 data class ListItem(
     val text: String,
-    val checked: Boolean? = null // null = normal item, true/false = task item
+    val checked: Boolean? = null
 )
-
 object MarkdownParser {
+
+    // Precompiled regexes (much faster)
+    private val headingRegex = Regex("^(#{1,6})\\s+(.+)$")
+    private val unorderedRegex = Regex("""^\s*([-*+])\s+(.+)$""")
+    private val taskRegex = Regex("""^\s*[-*+]\s+\[( |x|X)]\s+(.+)$""")
+    private val orderedRegex = Regex("""^\s*(\d+)\.\s+(.+)$""")
+    private val hrRegex = Regex("""^\s*(-{3,}|_{3,}|\*{3,})\s*$""")
 
     fun parse(input: String): List<MarkdownBlock> {
         val lines = input.lines()
@@ -24,41 +29,47 @@ object MarkdownParser {
         var i = 0
 
         while (i < lines.size) {
-            val rawLine = lines[i]
-            val line = rawLine.trimEnd()
+            val raw = lines[i]
+            val line = raw.trimEnd()
 
             if (line.isBlank()) {
                 i++
                 continue
             }
 
-            // Code block: ``` or ```lang
-            if (line.trimStart().startsWith("```")) {
-                val fence = line.trimStart()
-                val language = fence.removePrefix("```").takeIf { it.isNotBlank() }
-                val codeLines = mutableListOf<String>()
+            val trimmed = line.trimStart()
+
+            // -------------------------------------------------------------
+            // CODE BLOCK
+            // -------------------------------------------------------------
+            if (trimmed.startsWith("```")) {
+                val lang = trimmed.removePrefix("```").ifBlank { null }
                 i++
+                val codeLines = mutableListOf<String>()
 
                 while (i < lines.size && !lines[i].trimStart().startsWith("```")) {
                     codeLines += lines[i]
                     i++
                 }
-                // skip closing fence
-                if (i < lines.size) i++
+                if (i < lines.size) i++ // skip closing ```
 
-                blocks += MarkdownBlock.CodeBlock(language, codeLines.joinToString("\n"))
+                blocks += MarkdownBlock.CodeBlock(lang, codeLines.joinToString("\n"))
                 continue
             }
 
-            // Horizontal rule: --- or *** or ___
-            if (line.trim() in listOf("---", "***", "___")) {
+            // -------------------------------------------------------------
+            // HORIZONTAL RULE
+            // -------------------------------------------------------------
+            if (hrRegex.matches(trimmed)) {
                 blocks += MarkdownBlock.HorizontalRule()
                 i++
                 continue
             }
 
-            // Heading: # to ######
-            val headingMatch = Regex("^(#{1,6})\\s+(.+)$").find(line.trimStart())
+            // -------------------------------------------------------------
+            // HEADING
+            // -------------------------------------------------------------
+            val headingMatch = headingRegex.matchEntire(trimmed)
             if (headingMatch != null) {
                 val level = headingMatch.groupValues[1].length
                 val text = headingMatch.groupValues[2]
@@ -67,72 +78,84 @@ object MarkdownParser {
                 continue
             }
 
-            // Blockquote: group consecutive lines starting with ">"
-            if (line.trimStart().startsWith(">")) {
+            // -------------------------------------------------------------
+            // BLOCKQUOTE
+            // -------------------------------------------------------------
+            if (trimmed.startsWith(">")) {
                 val quoteLines = mutableListOf<String>()
                 while (i < lines.size && lines[i].trimStart().startsWith(">")) {
-                    quoteLines += lines[i].trimStart().removePrefix(">").trimStart()
+                    quoteLines += lines[i]
+                        .trimStart()
+                        .removePrefix(">")
+                        .trimStart()
                     i++
                 }
                 blocks += MarkdownBlock.BlockQuote(quoteLines.joinToString("\n"))
                 continue
             }
 
-            // Unordered / task list
-            val unorderedRegex = Regex("""^\s*([-*+])\s+(.+)$""")
-            val taskRegex = Regex("""^\s*[-*+]\s+\[( |x|X)]\s+(.+)$""")
-            if (unorderedRegex.matches(line)) {
+            // -------------------------------------------------------------
+            // UNORDERED / TASK LIST
+            // -------------------------------------------------------------
+            if (unorderedRegex.matches(trimmed)) {
                 val items = mutableListOf<ListItem>()
-                while (i < lines.size && unorderedRegex.matches(lines[i].trimEnd())) {
-                    val taskMatch = taskRegex.matchEntire(lines[i].trimEnd())
-                    if (taskMatch != null) {
-                        val checked = when (taskMatch.groupValues[1]) {
-                            "x", "X" -> true
-                            else -> false
-                        }
-                        val textItem = taskMatch.groupValues[2]
-                        items += ListItem(textItem, checked)
-                    } else {
-                        val m = unorderedRegex.matchEntire(lines[i].trimEnd())!!
-                        val textItem = m.groupValues[2]
-                        items += ListItem(textItem)
+
+                while (i < lines.size && unorderedRegex.matches(lines[i].trimStart())) {
+                    val t = lines[i].trimStart()
+
+                    taskRegex.matchEntire(t)?.let { task ->
+                        val checked = task.groupValues[1].equals("x", ignoreCase = true)
+                        val text = task.groupValues[2]
+                        items += ListItem(text, checked)
+                    } ?: run {
+                        val match = unorderedRegex.matchEntire(t)!!
+                        items += ListItem(match.groupValues[2])
                     }
                     i++
                 }
+
                 blocks += MarkdownBlock.UnorderedList(items)
                 continue
             }
 
-            // Ordered list
-            val orderedRegex = Regex("""^\s*(\d+)\.\s+(.+)$""")
-            if (orderedRegex.matches(line)) {
+            // -------------------------------------------------------------
+            // ORDERED LIST
+            // -------------------------------------------------------------
+            if (orderedRegex.matches(trimmed)) {
                 val items = mutableListOf<ListItem>()
-                while (i < lines.size && orderedRegex.matches(lines[i].trimEnd())) {
-                    val m = orderedRegex.matchEntire(lines[i].trimEnd())!!
-                    val textItem = m.groupValues[2]
-                    items += ListItem(textItem)
+
+                while (i < lines.size && orderedRegex.matches(lines[i].trimStart())) {
+                    val match = orderedRegex.matchEntire(lines[i].trimStart())!!
+                    items += ListItem(match.groupValues[2])
                     i++
                 }
+
                 blocks += MarkdownBlock.OrderedList(items)
                 continue
             }
 
-            // Paragraph: collect until blank line or a new block starts
+            // -------------------------------------------------------------
+            // PARAGRAPH
+            // -------------------------------------------------------------
             val paragraphLines = mutableListOf<String>()
-            while (i < lines.size && lines[i].isNotBlank() &&
+
+            while (
+                i < lines.size &&
+                lines[i].isNotBlank() &&
                 !lines[i].trimStart().startsWith("```") &&
-                !lines[i].trimStart().startsWith("#") &&
+                !headingRegex.matches(lines[i].trimStart()) &&
                 !lines[i].trimStart().startsWith(">") &&
-                !unorderedRegex.matches(lines[i].trimEnd()) &&
-                !orderedRegex.matches(lines[i].trimEnd()) &&
-                lines[i].trim() !in listOf("---", "***", "___")
+                !unorderedRegex.matches(lines[i].trimStart()) &&
+                !orderedRegex.matches(lines[i].trimStart()) &&
+                !hrRegex.matches(lines[i].trimStart())
             ) {
                 paragraphLines += lines[i].trimEnd()
                 i++
             }
-            val paragraphText = paragraphLines.joinToString("\n").trim()
-            if (paragraphText.isNotEmpty()) {
-                blocks += MarkdownBlock.Paragraph(paragraphText)
+
+            val paragraph = paragraphLines.joinToString("\n").trim()
+            if (paragraph.isNotEmpty()) {
+                blocks += MarkdownBlock.Paragraph(paragraph)
             }
         }
 
