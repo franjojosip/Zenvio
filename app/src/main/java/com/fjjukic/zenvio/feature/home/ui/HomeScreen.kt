@@ -149,7 +149,7 @@ fun HomeScreen(
                             .padding(top = 16.dp)
                     ) {
                         ActionCard(
-                            title = stringResource(R.string.home_action_chat_with_mindy),
+                            title = stringResource(R.string.title_chat_with_zenvio),
                             imageRes = R.drawable.img_chat_mindypng,
                             modifier = Modifier.weight(1f),
                             onClick = { onIntent(HomeIntent.ChatWithMindyClicked) }

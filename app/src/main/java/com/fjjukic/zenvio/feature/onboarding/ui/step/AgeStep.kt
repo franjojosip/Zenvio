@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,7 +41,6 @@ import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 @Composable
 fun AgeStep(
@@ -59,19 +57,21 @@ fun AgeStep(
 
     val sideCount = (visibleItemCount - 1) / 2
     val spacerHeight = itemHeight * sideCount
-    val itemHeightPx = with(LocalDensity.current) { itemHeight.toPx() }
 
     // Detect centered index while scrolling
     val centerIndex by remember {
         derivedStateOf {
-            val firstVisibleIndex = listState.firstVisibleItemIndex
-            val firstVisibleOffset = listState.firstVisibleItemScrollOffset
-
-            val centerItemIndex =
-                firstVisibleIndex + sideCount + (firstVisibleOffset / itemHeightPx).roundToInt()
-
-            // Subtract 1 because the LazyColumn has a spacer item at the top (index 0).
-            centerItemIndex - 1
+            val layoutInfo = listState.layoutInfo
+            val visibleItemsInfo = layoutInfo.visibleItemsInfo
+            if (visibleItemsInfo.isEmpty()) {
+                -1 // Return an invalid index if the list is empty
+            } else {
+                val centerItem = visibleItemsInfo.minByOrNull {
+                    abs((it.offset + it.size / 2) - layoutInfo.viewportSize.height / 2)
+                }
+                // Subtract 1 for the initial spacer
+                (centerItem?.index ?: 0) - 1
+            }
         }
     }
 
@@ -80,7 +80,10 @@ fun AgeStep(
             .distinctUntilChanged()
             .filter { !it }
             .collect {
-                onAgeSelected(ages[centerIndex])
+                if (centerIndex >= 0) {
+                    val finalIndex = centerIndex.coerceIn(0, ages.lastIndex)
+                    onAgeSelected(ages[finalIndex])
+                }
             }
     }
 

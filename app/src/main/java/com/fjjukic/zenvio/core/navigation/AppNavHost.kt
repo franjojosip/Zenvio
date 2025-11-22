@@ -1,5 +1,3 @@
-// In file: core/navigation/AppNavHost.kt
-
 package com.fjjukic.zenvio.core.navigation
 
 import androidx.compose.runtime.Composable

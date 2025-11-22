@@ -1,5 +1,3 @@
-// In file: core/data/preferences/PrefsManager.kt
-
 package com.fjjukic.zenvio.core.data.preferences
 
 import androidx.datastore.core.DataStore

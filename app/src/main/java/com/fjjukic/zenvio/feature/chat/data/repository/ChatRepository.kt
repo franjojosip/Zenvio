@@ -4,6 +4,7 @@ import com.fjjukic.zenvio.core.api.ChatRequest
 import com.fjjukic.zenvio.core.api.ChatRoleMessage
 import com.fjjukic.zenvio.core.api.OpenAIApi
 import com.fjjukic.zenvio.feature.chat.model.ChatMessage
+import com.fjjukic.zenvio.feature.chat.model.ChatRole
 import javax.inject.Inject
 
 interface ChatRepository {
@@ -13,13 +14,16 @@ interface ChatRepository {
 class ChatRepositoryImpl @Inject constructor(
     private val api: OpenAIApi
 ) : ChatRepository {
-
     override suspend fun sendMessage(messages: List<ChatMessage>): String {
-        val formatted = messages.mapNotNull {
-            when (it) {
-                is ChatMessage.User -> ChatRoleMessage("user", it.text)
-                is ChatMessage.Assistant -> ChatRoleMessage("assistant", it.text)
-                else -> null
+        val formatted = messages.mapNotNull { message ->
+            if (message is ChatMessage.Standard) {
+                val roleName = when (message.role) {
+                    ChatRole.USER -> "user"
+                    ChatRole.ASSISTANT -> "assistant"
+                }
+                ChatRoleMessage(roleName, message.content)
+            } else {
+                null
             }
         }
 
@@ -30,6 +34,7 @@ class ChatRepositoryImpl @Inject constructor(
             )
         )
 
-        return response.choices.first().message.content
+        return response.choices.firstOrNull()?.message?.content
+            ?: "Sorry, I couldn't provide a response."
     }
 }

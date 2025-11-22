@@ -1,5 +1,3 @@
-// In file: core/navigation/OnboardingGraph.kt
-
 package com.fjjukic.zenvio.core.navigation
 
 import androidx.navigation.NavGraphBuilder

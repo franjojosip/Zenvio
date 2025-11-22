@@ -105,7 +105,6 @@
     <string name="home_mood_question">How do you feel today?</string>
     <string name="home_banner_title">Introduction to\nMental Health\nIssues</string>
     <string name="home_title">Home</string>
-    <string name="home_action_chat_with_mindy">Chat with Mindy</string>
     <string name="home_action_talk_with_coach">Talk with Coach</string>
     <string name="home_plans_title">Your plans for today (%d/%d)</string>
     <string name="action_not_implemented">Action not implemented yet!</string>
@@ -171,4 +170,14 @@
     <string name="cd_choice_happy">Choice: Happy</string>
     <string name="cd_choice_very_happy">Choice: Very Happy</string>
     <string name="cd_btn_explore">Button Explore</string>
+    <string name="label_search">Search</string>
+    <string name="label_export_chat">Export Chat</string>
+    <string name="label_clear_chat">Clear Chat</string>
+    <string name="cd_clear_chat">Clear chat</string>
+    <string name="cd_export_chat">Export chat</string>
+    <string name="cd_search_in_chat">Search in chat</string>
+    <string name="cd_more_actions">More actions</string>
+    <string name="label_type_a_message">Type a message…</string>
+    <string name="cd_send_message">Send message</string>
+    <string name="title_chat_with_zenvio">Chat with Zenvio</string>
 </resources>

@@ -1,5 +1,3 @@
-// In file: core/navigation/PreloginGraph.kt
-
 package com.fjjukic.zenvio.core.navigation
 
 import androidx.navigation.NavGraphBuilder

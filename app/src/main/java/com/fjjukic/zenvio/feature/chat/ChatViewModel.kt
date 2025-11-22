@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fjjukic.zenvio.feature.chat.model.ChatIntent
 import com.fjjukic.zenvio.feature.chat.model.ChatMessage
-import com.fjjukic.zenvio.feature.chat.model.SendMessageUseCase
+import com.fjjukic.zenvio.feature.chat.model.ChatRole
+import com.fjjukic.zenvio.feature.chat.model.ChatStateUi
+import com.fjjukic.zenvio.feature.chat.model.GetAIResponseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,29 +16,42 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val sendMessageUseCase: SendMessageUseCase
+    private val getAIResponseUseCase: GetAIResponseUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ChatStateUi())
-    val state = _state.asStateFlow()
+    private val _uiState = MutableStateFlow(ChatStateUi())
+    val uiState = _uiState.asStateFlow()
+
+    init {
+        _uiState.update {
+            it.copy(
+                messages = listOf(
+                    ChatMessage.Standard(
+                        role = ChatRole.ASSISTANT,
+                        content = "Hello there! I'm Mindy, your mental wellness companion. How can I assist you today?"
+                    )
+                )
+            )
+        }
+    }
 
     fun onIntent(intent: ChatIntent) {
         when (intent) {
             is ChatIntent.InputChanged -> updateInput(intent.text)
-
             ChatIntent.SendMessage -> send()
             ChatIntent.ClearChat -> clear()
             ChatIntent.ExportChat -> export()
             ChatIntent.LoadInitial -> {}
+            ChatIntent.Search -> {}
         }
     }
 
     private fun updateInput(text: String) {
-        _state.update { it.copy(input = text) }
+        _uiState.update { it.copy(input = text) }
     }
 
     private fun clear() {
-        _state.update { it.copy(messages = emptyList()) }
+        _uiState.update { it.copy(messages = emptyList()) }
     }
 
     private fun export() {
@@ -44,36 +59,46 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun send() {
-        val input = state.value.input
+        val input = uiState.value.input
         if (input.isBlank()) return
 
-        // Add user message
-        val newMessages = state.value.messages + ChatMessage.User(input)
+        val userMessage = ChatMessage.Standard(role = ChatRole.USER, content = input)
+        val messagesBeforeAI = uiState.value.messages + userMessage
 
-        _state.update {
+        // Add loading bubble (unique ID!)
+        _uiState.update {
             it.copy(
-                messages = newMessages + ChatMessage.Loading,
+                messages = messagesBeforeAI + ChatMessage.Loading(),
                 input = "",
                 isLoading = true
             )
         }
 
         viewModelScope.launch {
-            val response = sendMessageUseCase(newMessages)
+            getAIResponseUseCase(messagesBeforeAI)
+                .onSuccess { assistantMessage ->
+                    // Replace loading with assistant message
+                    _uiState.update {
+                        it.copy(
+                            messages = messagesBeforeAI + assistantMessage,
+                            isLoading = false
+                        )
+                    }
+                }
+                .onFailure { error ->
 
-            _state.update {
-                it.copy(
-                    isLoading = false,
-                    messages = (newMessages + ChatMessage.Assistant(response))
-                )
-            }
+                    val assistantMessage = ChatMessage.Standard(
+                        role = ChatRole.ASSISTANT,
+                        content = error.message ?: "Something went wrong. Please try again."
+                    )
+
+                    _uiState.update {
+                        it.copy(
+                            messages = messagesBeforeAI + assistantMessage,
+                            isLoading = false
+                        )
+                    }
+                }
         }
     }
-
-    data class ChatStateUi(
-        val messages: List<ChatMessage> = emptyList(),
-        val input: String = "",
-        val isLoading: Boolean = false,
-        val error: String? = null
-    )
 }

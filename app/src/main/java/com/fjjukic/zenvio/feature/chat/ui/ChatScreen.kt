@@ -1,34 +1,70 @@
 package com.fjjukic.zenvio.feature.chat.ui
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.animateValue
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,102 +73,133 @@ import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.feature.chat.ChatViewModel
 import com.fjjukic.zenvio.feature.chat.model.ChatIntent
 import com.fjjukic.zenvio.feature.chat.model.ChatMessage
-import com.fjjukic.zenvio.ui.defaults.AppInputDefaults
+import com.fjjukic.zenvio.feature.chat.model.ChatRole
+import com.fjjukic.zenvio.feature.chat.model.ChatStateUi
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    val context = LocalContext.current
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp)
-        ) {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                reverseLayout = false,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(state.messages) { msg ->
-                    when (msg) {
-                        is ChatMessage.User -> UserMessage(msg.text)
-                        is ChatMessage.Assistant -> AssistantMessage(msg.text)
-                        ChatMessage.Loading -> LoadingBubble()
-                    }
-                }
-            }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            MessageInput(
-                text = state.input,
-                onTextChanged = { viewModel.onIntent(ChatIntent.InputChanged(it)) },
-                onSend = { viewModel.onIntent(ChatIntent.SendMessage) }
-            )
-        }
-    }
+    ChatScreenStateless(
+        state = uiState,
+        onEvent = viewModel::onIntent,
+        onNavigateBack = onNavigateBack
+    )
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun UserMessagePreview() {
-    ZenvioTheme {
-        UserMessage(stringResource(R.string.title_walkthrough_step_one))
+fun ChatScreenStateless(
+    state: ChatStateUi,
+    onEvent: (ChatIntent) -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // This effect correctly scrolls to the bottom when a new message appears
+    LaunchedEffect(state.messages.size) {
+        if (state.messages.isNotEmpty()) {
+            coroutineScope.launch {
+                listState.animateScrollToItem(state.messages.lastIndex)
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            ChatTopBar(
+                onNavigateBack = onNavigateBack,
+                onEvent = onEvent
+            )
+        },
+        // The container holds the list and the input field
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding) // Respects Scaffold's top bar
+                    .imePadding()       // Handles keyboard and navigation bar insets
+            ) {
+                MessageList(
+                    messages = state.messages,
+                    listState = listState,
+                    modifier = Modifier.weight(1f) // List takes up all available space
+                )
+                MessageInput(
+                    text = state.input,
+                    onTextChanged = { onEvent(ChatIntent.InputChanged(it)) },
+                    onSend = { onEvent(ChatIntent.SendMessage) }
+                )
+            }
+        },
+        containerColor = Color.White
+    )
+}
+
+@Composable
+fun MessageList(
+    messages: List<ChatMessage>,
+    listState: LazyListState,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        state = listState,
+        modifier = modifier.padding(horizontal = 16.dp), // Horizontal padding for messages
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(vertical = 16.dp) // Padding at the top and bottom of the list
+    ) {
+        items(messages, key = { it.id }) { msg ->
+            when (msg) {
+                is ChatMessage.Standard ->
+                    if (msg.role == ChatRole.USER) UserMessage(msg.content)
+                    else AssistantMessage(msg.content)
+
+                is ChatMessage.Loading -> LoadingBubble()
+            }
+        }
     }
 }
 
 @Composable
 fun UserMessage(text: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 60.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
     ) {
         Box(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-                .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
+                .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                .background(
+                    MaterialTheme.colorScheme.primary,
+                    RoundedCornerShape(8.dp, 0.dp, 8.dp, 8.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Text(
                 text,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    textAlign = TextAlign.Start,
-                    lineHeight = 28.sp
-                )
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun AssistantMessagePreview() {
-    ZenvioTheme {
-        AssistantMessage(stringResource(R.string.title_walkthrough_step_one))
-    }
-}
-
-
 @Composable
 fun AssistantMessage(text: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(end = 60.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start
     ) {
         Box(
             modifier = Modifier
-                .background(AppInputDefaults.boxFillColor, RoundedCornerShape(12.dp))
-                .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
+                .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.7f)
+                .background(Color(0xFFEAEAEA), RoundedCornerShape(0.dp, 8.dp, 8.dp, 8.dp))
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Text(
                 text,
@@ -149,7 +216,51 @@ fun AssistantMessage(text: String) {
 
 @Composable
 fun LoadingBubble() {
-    Text("...", modifier = Modifier.padding(12.dp))
+    val bounceUp = (-8).dp
+    val bounceDown = 0.dp
+    val infiniteTransition = rememberInfiniteTransition(label = "loading-bubble-transition")
+    val delays = listOf(0, 150, 300)
+    val animatedValues = delays.map { delay ->
+        infiniteTransition.animateValue(
+            initialValue = bounceDown,
+            targetValue = bounceUp,
+            typeConverter = Dp.VectorConverter,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 400, easing = LinearOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+                initialStartOffset = StartOffset(delay)
+            ),
+            label = "dot-bounce-$delay"
+        )
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 60.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .background(Color(0xFFEAEAEA), RoundedCornerShape(0.dp, 8.dp, 8.dp, 8.dp))
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                animatedValues.forEach { animatedValue ->
+                    Box(
+                        modifier = Modifier
+                            .graphicsLayer { translationY = animatedValue.value.toPx() }
+                            .background(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                shape = RoundedCornerShape(50)
+                            )
+                            .size(8.dp)
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -160,28 +271,127 @@ fun MessageInput(
 ) {
     Row(
         modifier = Modifier
-            .padding(8.dp)
-            .background(Color(0xFFF1F1F1), RoundedCornerShape(25.dp)),
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 8.dp), // A single, simple padding
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TextField(
+        OutlinedTextField(
             value = text,
             onValueChange = onTextChanged,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Type a message...") },
-//            colors = TextFieldDefaults.textFieldColors(
-//                containerColor = Color.Transparent,
-//                focusedIndicatorColor = Color.Transparent,
-//                unfocusedIndicatorColor = Color.Transparent
-//            )
+            placeholder = { Text(stringResource(R.string.label_type_a_message)) },
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFFF0F0F0),
+                unfocusedContainerColor = Color(0xFFF0F0F0),
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedPlaceholderColor = Color.Gray,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+            keyboardActions = KeyboardActions(onSend = { if (text.isNotBlank()) onSend() })
         )
-
-        IconButton(onClick = onSend) {
+        Spacer(modifier = Modifier.size(8.dp))
+        IconButton(
+            onClick = onSend,
+            enabled = text.isNotBlank(),
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    color = if (text.isNotBlank()) MaterialTheme.colorScheme.primary else Color.LightGray,
+                    shape = RoundedCornerShape(50)
+                )
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
-                contentDescription = null,
-                tint = Color(0xFF85AF55)
+                contentDescription = stringResource(R.string.cd_send_message),
+                tint = if (text.isNotBlank()) Color.White else Color.DarkGray,
+                modifier = Modifier.graphicsLayer { translationX = 5f }
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChatTopBar(
+    onNavigateBack: () -> Unit,
+    onEvent: (ChatIntent) -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    CenterAlignedTopAppBar(
+        title = {
+            Text(
+                stringResource(R.string.title_chat_with_zenvio),
+                fontWeight = FontWeight.Bold
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.cd_navigate_back))
+            }
+        },
+        actions = {
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(Icons.Default.MoreVert, stringResource(R.string.cd_more_actions))
+            }
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.label_search)) },
+                    onClick = { onEvent(ChatIntent.Search); menuExpanded = false },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            stringResource(R.string.cd_search_in_chat)
+                        )
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.label_export_chat)) },
+                    onClick = { onEvent(ChatIntent.ExportChat); menuExpanded = false },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Share,
+                            stringResource(R.string.cd_export_chat)
+                        )
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.label_clear_chat)) },
+                    onClick = { onEvent(ChatIntent.ClearChat); menuExpanded = false },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Delete,
+                            stringResource(R.string.cd_clear_chat)
+                        )
+                    }
+                )
+            }
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Color.White,
+            scrolledContainerColor = Color.White
+        ),
+    )
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun ChatScreenContentPreview() {
+    ZenvioTheme {
+        val sampleMessages = listOf(
+            ChatMessage.Standard(
+                role = ChatRole.ASSISTANT,
+                content = "Hello! How can I help you today?"
+            ),
+            ChatMessage.Standard(role = ChatRole.USER, content = "What is Jetpack Compose?"),
+            ChatMessage.Loading()
+        )
+        ChatScreenStateless(
+            state = ChatStateUi(messages = sampleMessages, input = "Some text"),
+            onEvent = {},
+            onNavigateBack = {}
+        )
     }
 }

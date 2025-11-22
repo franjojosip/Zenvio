@@ -1,5 +1,3 @@
-// In file: core/navigation/MainGraph.kt
-
 package com.fjjukic.zenvio.core.navigation
 
 import androidx.navigation.NavGraphBuilder
@@ -11,7 +9,7 @@ import com.fjjukic.zenvio.feature.home.ui.HomeRoute
 
 fun NavGraphBuilder.mainGraph(navController: NavHostController) {
     navigation(
-        startDestination = Screen.Home.route,
+        startDestination = Screen.Chat.route,
         route = Graph.MAIN
     ) {
         composable(route = Screen.Home.route) {

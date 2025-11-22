@@ -40,6 +40,6 @@ class PreparingPlanViewModel @Inject constructor() : ViewModel() {
     }
 
     companion object {
-        const val TOTAL_PREPARATION_TIME_MS = 2000L
+        const val TOTAL_PREPARATION_TIME_MS = 3000L
     }
 }
