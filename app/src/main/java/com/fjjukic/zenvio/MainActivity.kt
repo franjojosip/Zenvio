@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.fjjukic.zenvio.navigation.AppNavHost
+import com.fjjukic.zenvio.core.navigation.AppNavHost
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 import dagger.hilt.android.AndroidEntryPoint
 

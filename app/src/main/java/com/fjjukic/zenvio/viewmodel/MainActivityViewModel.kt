@@ -3,33 +3,31 @@ package com.fjjukic.zenvio.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fjjukic.zenvio.core.data.preferences.PrefsManager
-import com.fjjukic.zenvio.navigation.Screen
+import com.fjjukic.zenvio.core.navigation.Graph
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    private val prefs: PrefsManager
+    prefs: PrefsManager
 ) : ViewModel() {
 
-    private val _startDestination = MutableStateFlow<String?>(null)
-    val startDestination: StateFlow<String?> = _startDestination
-
-    init {
-        viewModelScope.launch {
-            val isOnboardingCompleted = prefs.isOnboardingCompleted()
-            val isWalkthroughCompleted = prefs.isWalkthroughCompleted()
-
-            _startDestination.value = if (!isWalkthroughCompleted) {
-                Screen.Prelogin.route
-            } else if (!isOnboardingCompleted) {
-                Screen.Onboarding.route
-            } else {
-                Screen.Home.route
-            }
+    val startGraph: StateFlow<String?> = combine(
+        prefs.isWalkthroughCompleted(),
+        prefs.isOnboardingCompleted()
+    ) { isWalkthroughCompleted, isOnboardingCompleted ->
+        when {
+            !isWalkthroughCompleted -> Graph.PRELOGIN
+            !isOnboardingCompleted -> Graph.ONBOARDING
+            else -> Graph.MAIN
         }
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = null
+    )
 }

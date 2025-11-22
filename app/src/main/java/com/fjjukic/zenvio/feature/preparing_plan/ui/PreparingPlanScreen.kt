@@ -1,6 +1,10 @@
 package com.fjjukic.zenvio.feature.preparing_plan.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,29 +40,40 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.core.util.CustomSystemBars
 import com.fjjukic.zenvio.feature.preparing_plan.PreparingPlanViewModel
+import com.fjjukic.zenvio.feature.preparing_plan.model.PreparingPlanEffect
 import com.fjjukic.zenvio.feature.preparing_plan.model.PreparingPlanIntent
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
-
-@Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun PreparingPlanScreenPreview() {
-    ZenvioTheme {
-        PreparingPlanScreen()
-    }
-}
 
 @Composable
 fun PreparingPlanScreen(
     viewModel: PreparingPlanViewModel = hiltViewModel(),
-    onFinished: () -> Unit = {}
+    onNavigateToNextScreen: () -> Unit = {}
 ) {
     CustomSystemBars(lightStatusBarIcons = true, lightNavigationBarIcons = true)
-    val state = viewModel.uiState
 
-    BackHandler {
-        // ignore back press
+    var progressTarget by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(viewModel) {
+        viewModel.onIntent(PreparingPlanIntent.Start)
+        progressTarget = 100
+
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                PreparingPlanEffect.OnFinished -> onNavigateToNextScreen()
+            }
+        }
     }
 
+    BackHandler {}
+
+    PreparingPlanScreenStateless(
+        progress = progressTarget,
+        animationDuration = PreparingPlanViewModel.TOTAL_PREPARATION_TIME_MS.toInt()
+    )
+}
+
+@Composable
+fun PreparingPlanScreenStateless(progress: Int, animationDuration: Int) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -65,7 +84,7 @@ fun PreparingPlanScreen(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
 
-        Spacer(modifier = Modifier)
+        Spacer(modifier = Modifier.weight(0.4f))
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -86,11 +105,14 @@ fun PreparingPlanScreen(
                 )
             )
         }
+        Spacer(modifier = Modifier.weight(0.5f))
 
         CircularPercentageIndicator(
-            progress = state.progress,
-            strokeWidth = 20.dp
+            progress = progress,
+            animationDuration = animationDuration,
+            strokeWidth = 20.dp,
         )
+        Spacer(modifier = Modifier.weight(0.5f))
 
         Text(
             text = stringResource(R.string.label_this_will_take_a_moment),
@@ -102,69 +124,76 @@ fun PreparingPlanScreen(
             modifier = Modifier.padding(bottom = 40.dp)
         )
     }
-
-    // Start loading when entering screen
-    LaunchedEffect(Unit) {
-        viewModel.onIntent(PreparingPlanIntent.Start)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                PreparingPlanViewModel.PreparingPlanEffect.OnFinished -> {
-                    onFinished()
-                }
-            }
-        }
-    }
-}
-
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun CircularPercentageIndicatorPreview() {
-    ZenvioTheme {
-        CircularPercentageIndicator(75)
-    }
 }
 
 @Composable
 fun CircularPercentageIndicator(
     progress: Int,
+    animationDuration: Int,
     modifier: Modifier = Modifier,
     strokeWidth: Dp = 16.dp
 ) {
+    val animationSpec = tween<Float>(
+        durationMillis = animationDuration,
+        easing = LinearEasing
+    )
+    val intAnimationSpec = tween<Int>(
+        durationMillis = animationDuration,
+        easing = LinearEasing
+    )
+
+    val animatedSweepAngle by animateFloatAsState(
+        targetValue = (progress / 100f) * 360f,
+        animationSpec = animationSpec,
+        label = "ProgressSweepAnimation"
+    )
+
+    val animatedProgressText by animateIntAsState(
+        targetValue = progress,
+        animationSpec = intAnimationSpec,
+        label = "ProgressTextAnimation"
+    )
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier.size(240.dp)
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-
             // Background arc
             drawArc(
-                color = Color(0xFFDFDFDF),
+                color = Color(0xFFF0F0F0),
                 startAngle = -90f,
                 sweepAngle = 360f,
                 useCenter = false,
                 style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
             )
 
-            // Foreground arc
+            // Foreground arc (animated)
             drawArc(
                 color = Color(0xFF8DAA57), // green
                 startAngle = -90f,
-                sweepAngle = (progress / 100f) * 360f,
+                sweepAngle = animatedSweepAngle,
                 useCenter = false,
                 style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
             )
         }
 
         Text(
-            text = "${progress}%",
+            text = "$animatedProgressText%",
             style = MaterialTheme.typography.displayLarge.copy(
                 fontSize = 60.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.Black.copy(alpha = 0.8f)
             )
         )
+    }
+}
+
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun PreparingPlanScreenPreview() {
+    ZenvioTheme {
+        PreparingPlanScreenStateless(progress = 75, animationDuration = 2000)
     }
 }

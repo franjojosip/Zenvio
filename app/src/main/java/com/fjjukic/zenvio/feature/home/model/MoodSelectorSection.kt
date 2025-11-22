@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fjjukic.zenvio.R
-import com.fjjukic.zenvio.feature.home.Mood
 import com.fjjukic.zenvio.ui.defaults.AppInputDefaults
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 

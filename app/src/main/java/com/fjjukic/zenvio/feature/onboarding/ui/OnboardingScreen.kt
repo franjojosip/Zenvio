@@ -2,6 +2,7 @@ package com.fjjukic.zenvio.feature.onboarding.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -24,8 +26,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,97 +36,116 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.core.util.CustomSystemBars
 import com.fjjukic.zenvio.core.util.findActivity
 import com.fjjukic.zenvio.feature.onboarding.OnboardingViewModel
+import com.fjjukic.zenvio.feature.onboarding.model.OnboardingEffect
 import com.fjjukic.zenvio.feature.onboarding.model.OnboardingIntent
+import com.fjjukic.zenvio.feature.onboarding.model.OnboardingStateUi
 import com.fjjukic.zenvio.feature.onboarding.model.OnboardingStep
+import com.fjjukic.zenvio.feature.onboarding.ui.common.BaseStep
+import com.fjjukic.zenvio.feature.onboarding.ui.step.AgeStep
+import com.fjjukic.zenvio.feature.onboarding.ui.step.GenderStep
+import com.fjjukic.zenvio.feature.onboarding.ui.step.NameStep
+import com.fjjukic.zenvio.feature.onboarding.ui.step.SelectStep
 import com.fjjukic.zenvio.ui.theme.DividerLight
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
 
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
-    onFinished: () -> Unit = {}
+    onNavigateToNextScreen: () -> Unit = {}
 ) {
     CustomSystemBars(lightStatusBarIcons = true, lightNavigationBarIcons = true)
 
     val activity = LocalContext.current.findActivity()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    BackHandler {
-        viewModel.onIntent(OnboardingIntent.BackPressed)
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                OnboardingEffect.OnboardingCanceled -> activity?.finish()
+                OnboardingEffect.OnboardingFinished -> onNavigateToNextScreen()
+            }
+        }
     }
 
-    val state by viewModel.state.collectAsState()
+    OnboardingScreenStateless(
+        state = state,
+        onIntent = viewModel::onIntent
+    )
+}
 
+@Composable
+fun OnboardingScreenStateless(
+    state: OnboardingStateUi,
+    onIntent: (OnboardingIntent) -> Unit
+) {
+    BackHandler {
+        onIntent(OnboardingIntent.BackPressed)
+    }
     Scaffold(
         topBar = {
             OnboardingTopBar(
                 progress = state.progress,
                 counterText = state.counterText,
                 modifier = Modifier.statusBarsPadding(),
-            ) {
-                viewModel.onIntent(OnboardingIntent.BackPressed)
-            }
+                onBackClick = { onIntent(OnboardingIntent.BackPressed) }
+            )
 
         },
         bottomBar = {
             OnboardingBottomBar(
                 modifier = Modifier.navigationBarsPadding(),
                 btnTextRes = R.string.btn_continue,
-                isBtnEnabled = state.isBtnEnabled
-            ) {
-                viewModel.onIntent(OnboardingIntent.Next)
-            }
+                isBtnEnabled = state.isBtnEnabled,
+                onBtnClick = { onIntent(OnboardingIntent.Next) }
+            )
         }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            when (val step = state.currentStep) {
-                is OnboardingStep.Name -> {
-                    NameStep(step) {
-                        viewModel.onIntent(OnboardingIntent.UpdateName(it))
-                    }
-                }
+        val step = state.currentStep
 
-                is OnboardingStep.Gender -> {
-                    GenderStep(step.genders) {
-                        viewModel.onIntent(OnboardingIntent.SelectGender(it))
+        if (step != null) {
+            BaseStep(
+                titleRes = step.titleRes,
+                subtitleRes = step.subtitleRes,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                when (step) {
+                    is OnboardingStep.Name -> NameStep(step.name) {
+                        onIntent(OnboardingIntent.UpdateName(it))
                     }
-                }
 
-                is OnboardingStep.Age -> {
-                    AgeStep(step.age) {
-                        viewModel.onIntent(OnboardingIntent.SelectAge(it))
+                    is OnboardingStep.Gender -> GenderStep(step.genders) {
+                        onIntent(OnboardingIntent.SelectGender(it))
                     }
-                }
 
-                is OnboardingStep.ChoiceSelect -> {
-                    SelectStep(step) {
-                        viewModel.onIntent(OnboardingIntent.ToggleSelect(it))
+                    is OnboardingStep.Age -> AgeStep(
+                        step.age,
+                        step.visibleItemCount,
+                        step.itemHeight
+                    ) {
+                        onIntent(OnboardingIntent.SelectAge(it))
                     }
-                }
 
-                null -> {
-                    // do nothing
+                    is OnboardingStep.ChoiceSelect -> SelectStep(step.choices) {
+                        onIntent(OnboardingIntent.ToggleSelect(it))
+                    }
                 }
             }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                OnboardingViewModel.OnboardingEffect.OnboardingCanceled -> {
-                    activity?.finish()
-                }
-
-                OnboardingViewModel.OnboardingEffect.OnboardingFinished -> {
-                    onFinished()
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator()
                 }
             }
         }
@@ -144,7 +165,7 @@ fun OnboardingTopBar(
     progress: Float,
     counterText: String,
     modifier: Modifier = Modifier,
-    onBackClick: (() -> Unit) = {}
+    onBackClick: () -> Unit
 ) {
     Row(
         modifier = modifier
@@ -155,9 +176,12 @@ fun OnboardingTopBar(
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.cd_navigate_back),
             tint = Color.Black,
-            modifier = Modifier.clickable {
+            modifier = Modifier.clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
                 onBackClick()
             }
         )

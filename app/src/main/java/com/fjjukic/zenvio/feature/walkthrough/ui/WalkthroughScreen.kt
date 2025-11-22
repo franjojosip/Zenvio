@@ -2,7 +2,6 @@ package com.fjjukic.zenvio.feature.walkthrough.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -23,129 +21,135 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.core.util.CustomSystemBars
 import com.fjjukic.zenvio.core.util.findActivity
 import com.fjjukic.zenvio.feature.walkthrough.WalkthroughViewModel
+import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughEffect
 import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughIntent
+import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughPage
+import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughUiState
 import com.fjjukic.zenvio.ui.theme.DividerLight
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun WalkthroughScreen(
     viewModel: WalkthroughViewModel = hiltViewModel(),
-    onFinished: () -> Unit = {}
+    onNavigateToNextScreen: () -> Unit
 ) {
     CustomSystemBars(lightStatusBarIcons = false, lightNavigationBarIcons = true)
 
     val activity = LocalContext.current.findActivity()
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val pageCount = uiState.pages.size
+    // Create the PagerState here so it persists across recompositions from the ViewModel
     val pagerState = rememberPagerState(
         initialPage = 0,
-        pageCount = { pageCount }
+        pageCount = { uiState.pages.size }
     )
 
-    BackHandler {
-        viewModel.onIntent(WalkthroughIntent.BackPressed)
+    // Collect one-time effects from the ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is WalkthroughEffect.WalkthroughCanceled -> activity?.finish()
+                is WalkthroughEffect.WalkthroughFinished -> onNavigateToNextScreen()
+            }
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .distinctUntilChanged()
+            .collect { page ->
+                viewModel.onIntent(WalkthroughIntent.PageChanged(page))
+            }
+    }
+
+    LaunchedEffect(uiState.currentPage) {
+        if (!pagerState.isScrollInProgress &&
+            uiState.currentPage != pagerState.currentPage
+        ) {
+            pagerState.animateScrollToPage(uiState.currentPage)
+        }
+    }
+
+    WalkthroughScreenStateless(
+        uiState = uiState,
+        pagerState = pagerState,
+        onIntent = viewModel::onIntent
+    )
+}
+
+@Composable
+fun WalkthroughScreenStateless(
+    uiState: WalkthroughUiState,
+    pagerState: PagerState,
+    onIntent: (WalkthroughIntent) -> Unit
+) {
+    if (uiState.pages.isEmpty()) {
+        return
+    }
+
+    BackHandler(enabled = uiState.currentPage > 0) {
+        onIntent(WalkthroughIntent.BackPressed)
     }
 
     Scaffold(
         bottomBar = {
             WalkthroughBottomBar(
                 modifier = Modifier.navigationBarsPadding(),
-                pageSize = pageCount,
                 pagerState = pagerState,
-                startBtnText = uiState.startBtnText,
-                endBtnText = uiState.endBtnText,
-                onStartBtnClick = {
-                    viewModel.onIntent(WalkthroughIntent.StartButtonClick)
-                },
-                onEndBtnClick = {
-                    viewModel.onIntent(WalkthroughIntent.EndButtonClick)
-                }
+                uiState = uiState,
+                onStartBtnClick = { onIntent(WalkthroughIntent.StartButtonClick) },
+                onEndBtnClick = { onIntent(WalkthroughIntent.EndButtonClick) }
             )
         }
     ) { innerPadding ->
         HorizontalPager(
             state = pagerState,
+            key = { index -> uiState.pages[index].hashCode() },
             userScrollEnabled = true,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = innerPadding.calculateBottomPadding())
         ) { position ->
-            val page = uiState.pages[position]
-            WalkthroughPageScreen(page)
+            WalkthroughPageScreen(uiState.pages[position])
         }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                WalkthroughViewModel.WalkthroughEffect.WalkthroughCanceled -> {
-                    activity?.finish()
-                }
-
-                WalkthroughViewModel.WalkthroughEffect.WalkthroughFinished -> {
-                    onFinished()
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(pagerState.currentPage) {
-        viewModel.onIntent(WalkthroughIntent.PageChanged(pagerState.currentPage))
-    }
-
-    LaunchedEffect(uiState.currentPage) {
-        pagerState.animateScrollToPage(uiState.currentPage)
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-fun WalkthroughBottomBarPreview() {
-    ZenvioTheme {
-        WalkthroughBottomBar(
-            pageSize = 4,
-            pagerState = PagerState(currentPage = 0) { 4 },
-            startBtnText = R.string.btn_back,
-            endBtnText = R.string.btn_continue
-        )
     }
 }
 
 @Composable
 fun WalkthroughBottomBar(
     modifier: Modifier = Modifier,
-    pageSize: Int,
     pagerState: PagerState,
-    startBtnText: Int? = null,
-    endBtnText: Int? = null,
+    uiState: WalkthroughUiState,
     onStartBtnClick: () -> Unit = {},
     onEndBtnClick: () -> Unit = {}
 ) {
     Column(
-        modifier = modifier
-            .padding(bottom = 16.dp),
+        modifier = modifier.padding(bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         StretchIndicator(
             modifier = Modifier.padding(top = 24.dp),
             pagerState = pagerState,
-            count = pageSize,
+            count = uiState.pages.size,
         )
 
         HorizontalDivider(
@@ -159,8 +163,11 @@ fun WalkthroughBottomBar(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(top = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Re-arranged the weight modifier to be more robust
+            val startBtnText = uiState.startBtnText
             if (startBtnText != null) {
                 Button(
                     onClick = onStartBtnClick,
@@ -174,29 +181,20 @@ fun WalkthroughBottomBar(
                 ) { Text(stringResource(startBtnText)) }
             }
 
-            if (endBtnText != null) {
-                Button(
-                    onClick = onEndBtnClick,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) { Text(stringResource(endBtnText)) }
-
-            }
+            Button(
+                onClick = onEndBtnClick,
+                modifier = Modifier
+                    .weight(if (startBtnText == null) 2f else 1f) // Take full width if it's the only button
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) { Text(stringResource(uiState.endBtnText)) }
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-val PagerState.pageOffset: Float
-    get() = currentPage + currentPageOffsetFraction
-
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StretchIndicator(
     pagerState: PagerState,
@@ -205,42 +203,72 @@ fun StretchIndicator(
     width: Dp = 8.dp,
     height: Dp = 8.dp,
     activeLineWidth: Dp = 24.dp,
-    circleSpacing: Dp = 8.dp,
-    radius: Float = 50f
+    spacing: Dp = 8.dp,
 ) {
-    val totalWidth = (width * count) + (circleSpacing * (count - 1))
     val indicatorColor = MaterialTheme.colorScheme.primary
 
-    Canvas(modifier = modifier.width(totalWidth)) {
-        val spacing = circleSpacing.toPx()
-        val dotWidth = width.toPx()
-        val dotHeight = height.toPx()
-        val activeWidth = activeLineWidth.toPx()
+    Canvas(modifier) {
+        val dotW = width.toPx()
+        val dotH = height.toPx()
+        val activeW = activeLineWidth.toPx()
+        val space = spacing.toPx()
+        val dotCount = count + 1
 
-        var x = 0f
-        val y = center.y
+        val totalWidth = dotCount * dotW + (dotCount - 1) * space
 
-        repeat(count) { i ->
-            val pos = pagerState.pageOffset
-            val offset = pos % 1
-            val curr = pos.toInt()
+        val startX = (size.width - totalWidth) / 2f
 
-            val factor = offset * (activeWidth - dotWidth)
+        val pageWithOffset = pagerState.currentPage + pagerState.currentPageOffsetFraction
 
-            val w = when (i) {
-                curr -> activeWidth - factor
-                curr + 1 -> dotWidth + factor
-                else -> dotWidth
-            }
+        for (i in 0 until dotCount) {
+
+            val distance = kotlin.math.abs(pageWithOffset - i)
+            val factor = (1f - distance).coerceIn(0f, 1f)
+
+            val w = dotW + (activeW - dotW) * factor
+
+            val x = startX + i * (dotW + space)
 
             drawRoundRect(
                 color = indicatorColor,
-                topLeft = androidx.compose.ui.geometry.Offset(x, y - dotHeight / 2),
-                size = androidx.compose.ui.geometry.Size(w, dotHeight),
-                cornerRadius = CornerRadius(radius)
+                topLeft = Offset(x, center.y - dotH / 2f),
+                size = Size(w, dotH),
+                cornerRadius = CornerRadius(50f)
             )
-
-            x += w + spacing
         }
+    }
+}
+
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+private fun WalkthroughContentPreview() {
+    ZenvioTheme {
+        val previewState = WalkthroughUiState(
+            pages = listOf(
+                WalkthroughPage(
+                    imageRes = R.drawable.walkthrough_step_one,
+                    titleRes = R.string.title_walkthrough_step_one,
+                    descriptionRes = R.string.description_walkthrough_step_one
+                ),
+                WalkthroughPage(
+                    imageRes = R.drawable.walkthrough_step_two,
+                    titleRes = R.string.title_walkthrough_step_two,
+                    descriptionRes = R.string.description_walkthrough_step_two
+                ),
+                WalkthroughPage(
+                    imageRes = R.drawable.walkthrough_step_three,
+                    titleRes = R.string.title_walkthrough_step_three,
+                    descriptionRes = R.string.description_walkthrough_step_three
+                )
+            ),
+            currentPage = 0
+        )
+        WalkthroughScreenStateless(
+            uiState = previewState,
+            pagerState = rememberPagerState(
+                initialPage = 0,
+                pageCount = { previewState.pages.size }),
+            onIntent = {})
     }
 }
