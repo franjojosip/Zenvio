@@ -15,7 +15,7 @@ With Zenvio, you can:
 
 The app is still under development, but it aims to become a complete wellness toolkit.
 
-## 🎨 UI
+## App Design
 <img width="1185" height="541" alt="ai_health_app" src="https://github.com/user-attachments/assets/47ecf27b-1c1a-4ddb-9079-b3aa639327ae" />
 
 ## Key Features
