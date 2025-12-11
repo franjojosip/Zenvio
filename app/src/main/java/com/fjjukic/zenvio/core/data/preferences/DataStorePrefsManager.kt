@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-interface PrefsManager {
+interface DataStorePrefsManager {
     fun isWalkthroughCompleted(): Flow<Boolean>
     fun isOnboardingCompleted(): Flow<Boolean>
 
@@ -16,35 +16,30 @@ interface PrefsManager {
     suspend fun setOnboardingCompleted(completed: Boolean)
 }
 
-class DataStorePrefsManager @Inject constructor(
+class DataStorePrefsManagerImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>
-) : PrefsManager {
+) : DataStorePrefsManager {
+
     private object Keys {
         val WALKTHROUGH_COMPLETED = booleanPreferencesKey("walkthrough_completed")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
-    override fun isWalkthroughCompleted(): Flow<Boolean> {
-        return dataStore.data.map { preferences ->
-            preferences[Keys.WALKTHROUGH_COMPLETED] ?: false
-        }
-    }
+    override fun isWalkthroughCompleted(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.WALKTHROUGH_COMPLETED] ?: false }
 
-    override fun isOnboardingCompleted(): Flow<Boolean> {
-        return dataStore.data.map { preferences ->
-            preferences[Keys.ONBOARDING_COMPLETED] ?: false
-        }
-    }
+    override fun isOnboardingCompleted(): Flow<Boolean> =
+        dataStore.data.map { it[Keys.ONBOARDING_COMPLETED] ?: false }
 
     override suspend fun setWalkthroughCompleted(completed: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[Keys.WALKTHROUGH_COMPLETED] = completed
+        dataStore.edit { prefs ->
+            prefs[Keys.WALKTHROUGH_COMPLETED] = completed
         }
     }
 
     override suspend fun setOnboardingCompleted(completed: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[Keys.ONBOARDING_COMPLETED] = completed
+        dataStore.edit { prefs ->
+            prefs[Keys.ONBOARDING_COMPLETED] = completed
         }
     }
 }

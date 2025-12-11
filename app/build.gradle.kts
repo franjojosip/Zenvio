@@ -1,3 +1,4 @@
+import com.google.protobuf.gradle.proto
 import java.util.Properties
 
 plugins {
@@ -6,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -58,6 +60,28 @@ android {
         compose = true
         buildConfig = true
     }
+
+    sourceSets {
+        getByName("main") {
+            proto {
+                srcDir("src/main/proto")
+            }
+        }
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
+    }
+
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") { }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -92,6 +116,9 @@ dependencies {
 
     implementation(libs.compose.google.fonts)
     implementation(libs.androidx.splashscreen)
+
+    implementation(libs.datastore.core)
+    implementation(libs.protobuf.java)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

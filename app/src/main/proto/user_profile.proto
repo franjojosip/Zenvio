@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_package = "com.fjjukic.zenvio.core.datastore";
+option java_multiple_files = true;
+
+message UserProfileProto {
+  string name = 1;
+  string gender = 2;
+  int32 age = 3;
+
+  // Multi-select fields
+  repeated string goals = 4;
+  repeated string mental_health_causes = 5;
+
+  // Single-choice fields
+  string stress_frequency = 6;
+  string healthy_eating = 7;
+  string meditation_experience = 8;
+  string sleep_quality = 9;
+  string happiness_level = 10;
+}

@@ -1,9 +1,12 @@
 package com.fjjukic.zenvio.feature.onboarding
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.fjjukic.zenvio.core.data.preferences.PrefsManager
+import com.fjjukic.zenvio.core.data.preferences.DataStorePrefsManager
+import com.fjjukic.zenvio.core.data.profile.UserProfileManager
 import com.fjjukic.zenvio.feature.onboarding.data.repository.OnboardingRepository
+import com.fjjukic.zenvio.feature.onboarding.model.GenderType
 import com.fjjukic.zenvio.feature.onboarding.model.OnboardingEffect
 import com.fjjukic.zenvio.feature.onboarding.model.OnboardingIntent
 import com.fjjukic.zenvio.feature.onboarding.model.OnboardingStateUi
@@ -19,9 +22,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val sharedPrefsManager: PrefsManager,
-    private val onboardingRepository: OnboardingRepository
-) : ViewModel() {
+    application: Application,
+    private val sharedPrefsManager: DataStorePrefsManager,
+    private val onboardingRepository: OnboardingRepository,
+    private val userProfileManager: UserProfileManager
+) : AndroidViewModel(application) {
     private val _effect = MutableSharedFlow<OnboardingEffect>()
     val effect = _effect.asSharedFlow()
 
@@ -96,6 +101,30 @@ class OnboardingViewModel @Inject constructor(
 
     private fun finishOnboarding() {
         viewModelScope.launch {
+            val name = getName()
+            val gender = getGender()
+            val age = getAge()
+            val goals = getGoals()
+            val causes = getMentalHealthCauses()
+            val stress = getStressFrequency()
+            val eating = getHealthyEating()
+            val meditation = getMeditationExperience()
+            val sleep = getSleepQuality()
+            val happiness = getHappiness()
+
+            userProfileManager.saveProfile(
+                name = name,
+                gender = gender,
+                age = age,
+                goals = goals,
+                mentalHealthCauses = causes,
+                stressFrequency = stress,
+                healthyEating = eating,
+                meditationExperience = meditation,
+                sleepQuality = sleep,
+                happiness = happiness
+            )
+
             sharedPrefsManager.setOnboardingCompleted(true)
             _effect.emit(OnboardingEffect.OnboardingFinished)
         }
@@ -107,5 +136,75 @@ class OnboardingViewModel @Inject constructor(
                 .apply { set(currentState.currentStepIndex, newStep) }
             currentState.copy(steps = updatedSteps)
         }
+    }
+
+    private val appContext: Application get() = getApplication()
+
+    private fun getName(): String {
+        return (_state.value.steps[0] as OnboardingStep.Name).name.trim()
+    }
+
+    private fun getGender(): String {
+        val step = _state.value.steps[1] as OnboardingStep.Gender
+        val selected = step.genders.firstOrNull { it.isSelected }?.genderType ?: return ""
+
+        return when (selected) {
+            GenderType.MALE -> "Male"
+            GenderType.FEMALE -> "Female"
+            GenderType.OTHER -> "Other"
+        }
+    }
+
+    private fun getAge(): Int {
+        return (_state.value.steps[2] as OnboardingStep.Age).age
+    }
+
+    private fun getGoals(): List<String> {
+        val step = _state.value.steps[3] as OnboardingStep.ChoiceSelect
+        return step.choices
+            .filter { it.isSelected }
+            .map { appContext.getString(it.textRes) }
+    }
+
+    private fun getMentalHealthCauses(): List<String> {
+        val step = _state.value.steps[4] as OnboardingStep.ChoiceSelect
+        return step.choices
+            .filter { it.isSelected }
+            .map { appContext.getString(it.textRes) }
+    }
+
+    private fun getStressFrequency(): String {
+        val step = _state.value.steps[5] as OnboardingStep.ChoiceSelect
+        return step.choices.firstOrNull { it.isSelected }
+            ?.let { appContext.getString(it.textRes) }
+            ?: ""
+    }
+
+    private fun getHealthyEating(): String {
+        val step = _state.value.steps[6] as OnboardingStep.ChoiceSelect
+        return step.choices.firstOrNull { it.isSelected }
+            ?.let { appContext.getString(it.textRes) }
+            ?: ""
+    }
+
+    private fun getMeditationExperience(): String {
+        val step = _state.value.steps[7] as OnboardingStep.ChoiceSelect
+        return step.choices.firstOrNull { it.isSelected }
+            ?.let { appContext.getString(it.textRes) }
+            ?: ""
+    }
+
+    private fun getSleepQuality(): String {
+        val step = _state.value.steps[8] as OnboardingStep.ChoiceSelect
+        return step.choices.firstOrNull { it.isSelected }
+            ?.let { appContext.getString(it.textRes) }
+            ?: ""
+    }
+
+    private fun getHappiness(): String {
+        val step = _state.value.steps[9] as OnboardingStep.ChoiceSelect
+        return step.choices.firstOrNull { it.isSelected }
+            ?.let { appContext.getString(it.textRes) }
+            ?: ""
     }
 }

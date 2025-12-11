@@ -7,7 +7,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.fjjukic.zenvio.core.data.preferences.DataStorePrefsManager
-import com.fjjukic.zenvio.core.data.preferences.PrefsManager
+import com.fjjukic.zenvio.core.data.preferences.DataStorePrefsManagerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -27,9 +27,9 @@ abstract class DataModule {
 
     @Binds
     @Singleton
-    abstract fun bindPrefsManager(
-        dataStorePrefsManager: DataStorePrefsManager
-    ): PrefsManager
+    abstract fun bindDataStorePrefsManager(
+        dataStorePrefsManager: DataStorePrefsManagerImpl
+    ): DataStorePrefsManager
 
     companion object {
         @Provides

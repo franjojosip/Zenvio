@@ -21,6 +21,10 @@ class GetAIResponseUseCase @Inject constructor(
             )
 
         } catch (e: Exception) {
+            // Re-throw if the coroutine was cancelled to ensure structured concurrency is respected.
+            if (e is CancellationException) {
+                throw e
+            }
             Log.e("GetAIResponseUseCase", "Network request failed", e)
 
             val error = when (e) {
@@ -32,9 +36,6 @@ class GetAIResponseUseCase @Inject constructor(
                 is java.net.SocketTimeoutException,
                 is javax.net.ssl.SSLException,
                 is java.net.ConnectException -> ChatError.NetworkFailure()
-
-                // On coroutine canceled
-                is CancellationException -> ChatError.CancellationFailure()
 
                 // Fallback
                 else -> ChatError.UnknownError()
