@@ -1,15 +1,20 @@
 package com.fjjukic.zenvio.core.navigation
 
 sealed class Screen(val route: String) {
-    // Prelogin Flow
-    data object Prelogin : Screen("prelogin_screen")
-    data object Walkthrough : Screen("walkthrough_screen")
 
-    // Onboarding Flow
-    data object Onboarding : Screen("onboarding_screen")
-    data object PreparingPlan : Screen("preparing_plan_screen")
+    // Prelogin
+    data object Prelogin : Screen("prelogin")
+    data object Walkthrough : Screen("prelogin/walkthrough")
 
-    // Main App Flow
-    data object Home : Screen("home_screen")
-    data object Chat : Screen("chat_screen")
+    // Onboarding
+    data object Onboarding : Screen("onboarding")
+    data object PreparingPlan : Screen("onboarding/preparing_plan")
+
+    // Home tab
+    data object Home : Screen("home")
+    data object Chat : Screen("home/chat")
+
+    // Sleep tab
+    data object Sleep : Screen("sleep")
+    data object Breathing : Screen("sleep/breathing")
 }

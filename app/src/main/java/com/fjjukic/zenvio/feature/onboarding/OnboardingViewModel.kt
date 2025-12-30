@@ -40,10 +40,12 @@ class OnboardingViewModel @Inject constructor(
     private fun loadSteps() {
         viewModelScope.launch {
             val steps = onboardingRepository.getSteps()
-            _state.value = OnboardingStateUi(
-                steps = steps,
-                isLoading = false
-            )
+            _state.update {
+                it.copy(
+                    steps = steps,
+                    isLoading = false
+                )
+            }
         }
     }
 

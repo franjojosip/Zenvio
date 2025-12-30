@@ -48,11 +48,11 @@ data class PlanItem(
 )
 
 data class HomeUiState(
+    val userName: String = "",
     val selectedMood: Mood? = null,
     val moods: List<Mood> = Mood.entries.toList(),
     val todayPlans: List<PlanItem> = emptyList(),
-    val completedCount: Int = 0,
-    val selectedTab: HomeTab = HomeTab.HOME
+    val completedCount: Int = 0
 )
 
 // Intents / events from UI
@@ -70,4 +70,5 @@ sealed interface HomeIntent {
 sealed interface HomeEffect {
     data class ShowToast(val messageRes: Int) : HomeEffect
     data object ShowChatScreen : HomeEffect
+    data class NavigateTab(val tab: HomeTab) : HomeEffect
 }

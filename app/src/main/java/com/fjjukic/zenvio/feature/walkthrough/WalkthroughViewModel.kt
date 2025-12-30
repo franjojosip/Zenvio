@@ -49,9 +49,11 @@ class WalkthroughViewModel @Inject constructor(
     }
 
     private fun previousPage() {
-        _uiState.value = _uiState.value.copy(
-            currentPage = _uiState.value.currentPage - 1
-        )
+        _uiState.update {
+            it.copy(
+                currentPage = it.currentPage - 1
+            )
+        }
     }
 
     private fun nextPage() {
