@@ -5,4 +5,5 @@ object Graph {
     const val PRELOGIN = "prelogin_graph"
     const val ONBOARDING = "onboarding_graph"
     const val MAIN = "main_graph"
+    const val HOME = "home_graph"
 }

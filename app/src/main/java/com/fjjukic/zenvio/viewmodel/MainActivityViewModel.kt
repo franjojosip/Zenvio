@@ -2,7 +2,7 @@ package com.fjjukic.zenvio.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fjjukic.zenvio.core.data.preferences.PrefsManager
+import com.fjjukic.zenvio.core.data.preferences.DataStorePrefsManager
 import com.fjjukic.zenvio.core.navigation.Graph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    prefs: PrefsManager
+    prefs: DataStorePrefsManager
 ) : ViewModel() {
 
     val startGraph: StateFlow<String?> = combine(

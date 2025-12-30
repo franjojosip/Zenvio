@@ -104,10 +104,10 @@
     <string name="plan_gratitude_duration">10 mins</string>
     <string name="home_mood_question">How do you feel today?</string>
     <string name="home_banner_title">Introduction to\nMental Health\nIssues</string>
-    <string name="home_title">Home</string>
     <string name="home_action_talk_with_coach">Talk with Coach</string>
     <string name="home_plans_title">Your plans for today (%d/%d)</string>
     <string name="action_not_implemented">Action not implemented yet!</string>
+    <string name="how_are_you_feeling_today">How are you feeling today?</string>
 
     <string name="unit_seconds">%1$ds</string>
     <string name="unit_minute">%1$d min</string>
@@ -169,4 +169,7 @@
     <string name="cd_search_in_chat">Search in chat</string>
     <string name="cd_more_actions">More actions</string>>
     <string name="cd_send_message">Send message</string>
+    <string name="morning">morning</string>
+    <string name="afternoon">afternoon</string>
+    <string name="evening">evening</string>
 </resources>

@@ -49,11 +49,6 @@ fun MarkdownMessage(
     }
 }
 
-private val paragraphStyle
-    @Composable get() = MaterialTheme.typography.bodyMedium.copy(
-        lineHeight = MaterialTheme.typography.bodyMedium.fontSize * 1.35f
-    )
-
 @Composable
 private fun HeadingBlock(block: MarkdownBlock.Heading) {
     val style = when (block.level) {
@@ -73,7 +68,7 @@ private fun HeadingBlock(block: MarkdownBlock.Heading) {
 private fun ParagraphBlock(block: MarkdownBlock.Paragraph) {
     Text(
         text = InlineMarkdown.format(block.text),
-        style = paragraphStyle
+        style = MaterialTheme.typography.bodyLarge
     )
 }
 
@@ -108,7 +103,7 @@ private fun QuoteBlock(block: MarkdownBlock.BlockQuote) {
 
         Text(
             text = InlineMarkdown.format(block.text),
-            style = paragraphStyle.copy(color = Color(0xFF607D8B))
+            style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF607D8B))
         )
     }
 }
@@ -136,13 +131,13 @@ private fun UnorderedListBlock(block: MarkdownBlock.UnorderedList) {
                         true -> "☑ "
                         false -> "☐ "
                     },
-                    style = paragraphStyle,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
 
                 // Item text
                 Text(
                     text = InlineMarkdown.format(item.text),
-                    style = paragraphStyle
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
@@ -159,13 +154,13 @@ private fun OrderedListBlock(block: MarkdownBlock.OrderedList) {
             ) {
                 Text(
                     text = "${index + 1}.",
-                    style = paragraphStyle,
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.width(14.dp)
                 )
 
                 Text(
                     text = InlineMarkdown.format(item.text),
-                    style = paragraphStyle
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }

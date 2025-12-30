@@ -1,5 +1,6 @@
 package com.fjjukic.zenvio.feature.home.ui
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,26 +15,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -44,25 +37,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fjjukic.zenvio.R
 import com.fjjukic.zenvio.feature.home.HomeViewModel
 import com.fjjukic.zenvio.feature.home.model.ActionCard
+import com.fjjukic.zenvio.feature.home.model.HomeBottomBar
 import com.fjjukic.zenvio.feature.home.model.HomeEffect
 import com.fjjukic.zenvio.feature.home.model.HomeIntent
 import com.fjjukic.zenvio.feature.home.model.HomeTab
 import com.fjjukic.zenvio.feature.home.model.HomeUiState
+import com.fjjukic.zenvio.feature.home.model.MainToolbar
 import com.fjjukic.zenvio.feature.home.model.MoodSelectorSection
 import com.fjjukic.zenvio.feature.home.model.PlanTimelineItem
-import com.fjjukic.zenvio.ui.defaults.AppInputDefaults
 import com.fjjukic.zenvio.ui.theme.ZenvioTheme
+import java.util.Calendar
 
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
-    showChatScreen: () -> Unit = {}
+    showChatScreen: () -> Unit = {},
+    onTabClick: (HomeTab) -> Unit = {}
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -78,9 +73,8 @@ fun HomeRoute(
                     ).show()
                 }
 
-                HomeEffect.ShowChatScreen -> {
-                    showChatScreen()
-                }
+                HomeEffect.ShowChatScreen -> showChatScreen()
+                is HomeEffect.NavigateTab -> onTabClick(effect.tab)
             }
         }
     }
@@ -102,13 +96,13 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            HomeTopAppBar(modifier = Modifier.statusBarsPadding()) {
+            MainToolbar(titleRes = R.string.nav_home, modifier = Modifier.statusBarsPadding()) {
                 onIntent(HomeIntent.SearchClicked)
             }
         },
         bottomBar = {
             HomeBottomBar(
-                selectedTab = state.selectedTab,
+                selectedTab = HomeTab.HOME,
                 onTabSelected = { onIntent(HomeIntent.BottomTabSelected(it)) }
             )
         }
@@ -126,6 +120,12 @@ fun HomeScreen(
                     .padding(horizontal = 22.dp)
                     .padding(top = 12.dp)
             ) {
+                item {
+                    HomeGreeting(
+                        name = state.userName,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    )
+                }
                 item {
                     HomeBanner(
                         modifier = Modifier.padding(top = 16.dp),
@@ -193,114 +193,6 @@ fun HomeScreen(
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun HomeTopAppBarPreview() {
-    ZenvioTheme {
-        HomeTopAppBar()
-    }
-}
-
-@Composable
-fun HomeTopAppBar(
-    modifier: Modifier = Modifier,
-    onSearchClick: () -> Unit = {}
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(start = 24.dp, end = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_lotus),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(32.dp)
-        )
-
-        Text(
-            text = stringResource(R.string.home_title),
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold
-            )
-        )
-
-        IconButton(
-            onClick = {
-                onSearchClick()
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_search),
-                contentDescription = null,
-                tint = AppInputDefaults.itemColor,
-                modifier = Modifier.size(32.dp)
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
-private fun HomeBottomBarPreview() {
-    ZenvioTheme {
-        HomeBottomBar(
-            selectedTab = HomeTab.HOME,
-            onTabSelected = {}
-        )
-    }
-}
-
-@Composable
-private fun HomeBottomBar(
-    selectedTab: HomeTab,
-    onTabSelected: (HomeTab) -> Unit
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 0.dp
-    ) {
-        HomeTab.entries.forEach { tab ->
-            val selected = tab == selectedTab
-            NavigationBarItem(
-                selected = selected,
-                onClick = { onTabSelected(tab) },
-                icon = {
-                    Icon(
-                        painter = painterResource(tab.iconRes),
-                        contentDescription = null,
-                        tint = if (selected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            AppInputDefaults.navigationItemColor
-                        }
-                    )
-                },
-                label = {
-                    Text(
-                        text = stringResource(tab.labelRes),
-                        fontSize = 12.sp
-                    )
-                },
-                colors = NavigationBarItemColors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = AppInputDefaults.navigationItemColor,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = AppInputDefaults.navigationItemColor,
-                    selectedIndicatorColor = Color.Transparent,
-                    disabledIconColor = Color.Transparent,
-                    disabledTextColor = Color.Transparent
-                ),
-
-                interactionSource = remember { MutableInteractionSource() },
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
-@Composable
 fun HomeBannerPreview() {
     ZenvioTheme {
         HomeBanner()
@@ -331,3 +223,32 @@ fun HomeBanner(modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     }
 }
 
+@Composable
+fun HomeGreeting(
+    name: String,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = "Good ${currentGreeting(context)}, $name 👋",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = stringResource(R.string.how_are_you_feeling_today),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+    }
+}
+
+fun currentGreeting(context: Context): String {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return when {
+        hour < 12 -> context.getString(R.string.morning)
+        hour < 17 -> context.getString(R.string.afternoon)
+        else -> context.getString(R.string.evening)
+    }
+}

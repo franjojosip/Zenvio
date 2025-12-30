@@ -2,7 +2,7 @@ package com.fjjukic.zenvio.feature.walkthrough
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fjjukic.zenvio.core.data.preferences.PrefsManager
+import com.fjjukic.zenvio.core.data.preferences.DataStorePrefsManager
 import com.fjjukic.zenvio.feature.walkthrough.data.WalkthroughRepository
 import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughEffect
 import com.fjjukic.zenvio.feature.walkthrough.model.WalkthroughIntent
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WalkthroughViewModel @Inject constructor(
-    private val sharedPrefsManager: PrefsManager,
+    private val sharedPrefsManager: DataStorePrefsManager,
     private val repository: WalkthroughRepository
 ) : ViewModel() {
     private val _effect = MutableSharedFlow<WalkthroughEffect>()
@@ -49,9 +49,11 @@ class WalkthroughViewModel @Inject constructor(
     }
 
     private fun previousPage() {
-        _uiState.value = _uiState.value.copy(
-            currentPage = _uiState.value.currentPage - 1
-        )
+        _uiState.update {
+            it.copy(
+                currentPage = it.currentPage - 1
+            )
+        }
     }
 
     private fun nextPage() {
